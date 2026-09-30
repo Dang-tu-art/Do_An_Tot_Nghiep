@@ -1,0 +1,387 @@
+/* =========================================
+   ADMIN / EMPLOYEE DASHBOARD
+========================================= */
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1e293b;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.admin-container .admin-sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f172a 0%, #172554 100%);
+  color: #fff;
+  padding: 26px 16px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  box-shadow: 4px 0 20px rgba(15, 23, 42, 0.08);
+  flex-shrink: 0;
+}
+
+
+/* Logo / tên cửa hàng */
+
+.admin-container .admin-sidebar h2 {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 4px;
+  color: #38bdf8;
+}
+
+/* Badge nhân viên */
+
+.admin-container .role-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(14, 165, 233, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 5px 10px;
+  border-radius: 6px;
+  align-self: flex-start;
+  margin: 2px 0 28px 4px;
+}
+
+
+/* =========================================
+   NAVIGATION
+========================================= */
+
+.admin-container .admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+
+.admin-container .admin-nav button {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 9px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.admin-container .admin-nav button:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+  transform: translateX(2px);
+}
+
+.admin-container .admin-nav button.active {
+  background: linear-gradient(
+    90deg,
+    rgba(14, 165, 233, 0.22),
+    rgba(14, 165, 233, 0.08)
+  );
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.15);
+  box-shadow: inset 3px 0 0 #38bdf8;
+}
+
+/* =========================================
+   LOGOUT - CHỈ EMPLOYEE
+========================================= */
+
+.admin-container .logout-btn {
+  width: 100%;
+  background: linear-gradient(
+    135deg,
+    #ef4444,
+    #dc2626
+  );
+  color: #ffffff;
+  border: none;
+  padding: 11px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: auto;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.18);
+  box-sizing: border-box;
+}
+
+
+.admin-container .logout-btn:hover {
+  background: linear-gradient(
+    135deg,
+    #dc2626,
+    #b91c1c
+  );
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.25);
+}
+
+
+.admin-container .logout-btn:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================
+   CONTENT
+========================================= */
+
+.admin-container .admin-content {
+  flex: 1;
+  padding: 36px 40px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.admin-container .admin-header {
+  margin-bottom: 24px;
+}
+
+
+.admin-container .admin-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+
+.admin-container .admin-header p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+
+/* =========================================
+   TABLE CONTAINER
+========================================= */
+
+.admin-container .table-wrapper {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.04),
+    0 1px 3px rgba(15, 23, 42, 0.04);
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.admin-container .admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 700px;
+}
+
+
+.admin-container .admin-table th,
+.admin-container .admin-table td {
+  padding: 15px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eef2f7;
+  font-size: 14px;
+}
+
+
+/* Header */
+
+.admin-container .admin-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Bo góc header */
+
+.admin-container .admin-table th:first-child {
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+}
+
+
+.admin-container .admin-table th:last-child {
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
+}
+
+
+/* Nội dung */
+
+.admin-container .admin-table td {
+  color: #475569;
+  background: #ffffff;
+}
+
+/* Hover dòng */
+
+.admin-container .admin-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.admin-container .admin-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+/* Dòng cuối */
+
+.admin-container .admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================
+   ORDER CODE
+========================================= */
+
+.admin-container .admin-table td:first-child {
+  font-weight: 700;
+  color: #2563eb;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.admin-container .status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Đang xử lý */
+
+.admin-container .status-tag.pending {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+
+/* Đã giao */
+
+.admin-container .status-tag.delivered {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* =========================================
+   ACTION BUTTON
+========================================= */
+
+.admin-container .action-btn {
+  background: linear-gradient(
+    135deg,
+    #22c55e,
+    #16a34a
+  );
+  color: #ffffff;
+  border: none;
+  padding: 8px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.18);
+  white-space: nowrap;
+}
+.admin-container .action-btn:hover {
+  background: linear-gradient(
+    135deg,
+    #16a34a,
+    #15803d
+  );
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 5px 12px rgba(22, 163, 74, 0.25);
+}
+.admin-container .action-btn:active {
+  transform: translateY(0);
+}
+/* =========================================
+   RESPONSIVE - TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .admin-container .admin-sidebar {
+    width: 220px;
+  }
+  .admin-container .admin-content {
+    padding: 28px 24px;
+  }
+}
+/* =========================================
+   RESPONSIVE - MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+  .admin-container {
+    flex-direction: column;
+  }
+  .admin-container .admin-sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 18px;
+  }
+  .admin-container .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .admin-container .admin-nav button {
+    width: auto;
+    flex: 1;
+    min-width: 140px;
+  }
+  /* Chỉ nút logout Employee */
+  .admin-container .logout-btn {
+    margin-top: 18px;
+  }
+  .admin-container .admin-content {
+    padding: 24px 16px;
+  }
+  .admin-container .table-wrapper {
+    padding: 14px;
+  }
+}
