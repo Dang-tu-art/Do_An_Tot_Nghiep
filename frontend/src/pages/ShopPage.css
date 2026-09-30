@@ -1032,3 +1032,61 @@
     display: none !important;
   }
 }
+/* --- TOAST NOTIFICATION CHO KHÁCH HÀNG --- */
+.customer-toast-notification {
+  position: fixed !important;
+  top: 25px !important;
+  right: 25px !important;
+  background: #ffffff;
+  border-left: 5px solid #22c55e;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 14px 18px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 999999 !important; /* Đảm bảo luôn nổi lên trên cùng */
+  min-width: 300px;
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-icon {
+  font-size: 22px;
+}
+
+.toast-body h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.toast-body p {
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #94a3b8;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.toast-close:hover {
+  color: #0f172a;
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ShopPage.css';
 
@@ -142,6 +142,54 @@ const PRODUCTS = [
 ];
 
 export default function ShopPage() {
+  const [notification, setNotification] = useState(null) ;
+  useEffect(() => {
+    // 1. Hàm đọc và hiển thị thông báo
+    const checkAndShowNotification = () => {
+      const savedNotice = localStorage.getItem('latest_notification');
+      if (savedNotice) {
+        try {
+          const parsedNotice = JSON.parse(savedNotice);
+          setNotification(parsedNotice.message);
+
+          // Ẩn thông báo sau 4 giây
+          setTimeout(() => {
+            setNotification(null);
+          }, 4000);
+        } catch (e) {
+          console.error("Lỗi parse notification:", e);
+        }
+      }
+    };
+
+    // 2. Chạy LẦN ĐẦU TIÊN ngay khi vừa mở/chuyển sang trang /shop
+    checkAndShowNotification();
+
+    // 3. Lắng nghe Custom Event (dùng khi thao tác chung 1 tab)
+    const handleCustomEvent = (e) => {
+      if (e.detail?.message) {
+        setNotification(e.detail.message);
+        setTimeout(() => setNotification(null), 4000);
+      } else {
+        checkAndShowNotification();
+      }
+    };
+
+    // 4. Lắng nghe Storage Event (dùng khi thao tác ở 2 tab khác nhau)
+    const handleStorageEvent = (e) => {
+      if (e.key === 'latest_notification') {
+        checkAndShowNotification();
+      }
+    };
+
+    window.addEventListener('order_status_updated', handleCustomEvent);
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      window.removeEventListener('order_status_updated', handleCustomEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
+  }, []);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user')) || { email: 'Khách hàng' };
   
@@ -209,7 +257,6 @@ export default function ShopPage() {
       }
     });
   };
-
   const updateQuantity = (id, color, delta) => {
     setCart((prevCart) =>
       prevCart
@@ -271,6 +318,7 @@ export default function ShopPage() {
   });
 
   return (
+    
     <div className="shop-container">
       {/* Header */}
       <header className="shop-header">
@@ -412,7 +460,6 @@ export default function ShopPage() {
           </div>
         </div>
       )}
-
       {/* GIỎ HÀNG MINI */}
       {isCartOpen && (
         <div className="mini-cart-overlay" onClick={() => setIsCartOpen(false)}>
@@ -587,6 +634,17 @@ export default function ShopPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* POPUP THÔNG BÁO DÀNH CHO KHÁCH HÀNG */}
+      {notification && (
+        <div className="customer-toast-notification">
+          <div className="toast-icon">🔔</div>
+          <div className="toast-body">
+            <h4>Cập nhật đơn hàng</h4>
+            <p>{notification}</p>
+          </div>
+          <button className="toast-close" onClick={() => setNotification(null)}>✕</button>
         </div>
       )}
     </div>
