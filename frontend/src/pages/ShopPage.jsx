@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ShopPage.css';
+import Footer from '../Component/Footer';
 
 const PRODUCTS = [
   { id: 1, name: 'Nokia 105 4G', rawPrice: 650000, price: '650.000đ', image: 'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTBtN9-g0MDhfDqgv9PXu-KZAKVHJKSLv5eGe766Y86V2qP0g8T8NffCOlYgdkyonBScZiSv2nrh_yLO3QjB0kb6J7DcVnPhCII3t6E0uUcFHBdFFad9SUUee-lxKGMKUT227x_RA&usqp=CAc', category: 'Phím bấm', specs: 'Màn hình 1.8 inch, 2 SIM 4G VoLTE, Nghe đài FM không cần tai nghe, Pin 1450 mAh.',
@@ -142,9 +143,121 @@ const PRODUCTS = [
 ];
 
 export default function ShopPage() {
-  const [notification, setNotification] = useState(null) ;
+
+  const [userOrders, setUserOrders] = useState([]);
+  const [notification, setNotification] = useState(null);
+
+  // State Lịch sử mua hàng
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [customerOrders, setCustomerOrders] = useState([]);
+
+  // Hàm tải danh sách đơn hàng thực tế từ Backend MySQL
+  const fetchUserOrders = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/orders');
+      const data = await res.json();
+      
+      if (Array.isArray(data)) {
+        // Lấy thông tin user hiện tại từ localStorage hoặc State
+        const savedUser = localStorage.getItem('user');
+        const currentUser = savedUser ? JSON.parse(savedUser) : (typeof user !== 'undefined' ? user : null);
+        const userEmail = currentUser?.email || currentUser?.username || '';
+
+        // Lọc các đơn hàng thuộc về người dùng VÀ LOẠI BỎ ĐƠN ĐÃ HỦY
+        const myOrders = data.filter(order => {
+          const orderCustomer = order.customer || order.email || order.customerName;
+          
+          const isMyOrder = 
+            (order.email && order.email === userEmail) ||
+            (orderCustomer && userEmail && orderCustomer.toLowerCase().includes(userEmail.split('@')[0].toLowerCase())) ||
+            (order.phone && typeof shippingInfo !== 'undefined' && order.phone === shippingInfo.phone);
+
+          // Chỉ lấy đơn thuộc sở hữu VÀ trạng thái KHÁC 'Đã hủy'
+          return isMyOrder && order.status !== 'Đã hủy';
+        });
+        setUserOrders(myOrders);
+        setCustomerOrders(myOrders); // Đồng bộ sang customerOrders để Modal đọc được ngay
+        return myOrders;
+      } else {
+        setUserOrders([]);
+        setCustomerOrders([]);
+      }
+    } catch (err) {
+      console.error('Lỗi lấy lịch sử đơn hàng từ MySQL:', err);
+      setUserOrders([]);
+      setCustomerOrders([]);
+    }
+  };
+
+  // Hàm xử lý khi bấm nút Lịch Sử Đơn Hàng trên Header
+  const handleOpenOrderHistory = async () => {
+    // 1. Gọi API lấy dữ liệu thực tế mới nhất từ MySQL CSDL
+    const dbOrders = await fetchUserOrders();
+
+    // 2. Nếu MySQL chưa có dữ liệu, thử fallback đọc từ localStorage
+    if (!dbOrders || dbOrders.length === 0) {
+      try {
+        const savedOrders = localStorage.getItem('orders');
+        const allOrders = savedOrders ? JSON.parse(savedOrders) : [];
+        const savedUser = localStorage.getItem('user');
+        const currentUser = savedUser ? JSON.parse(savedUser) : null;
+
+        if (currentUser) {
+          const userIdentifier = currentUser.email || currentUser.username || currentUser.name;
+          const myLocalOrders = allOrders.filter((order) => {
+            const orderCustomer = order.customer || order.email || order.username;
+            return orderCustomer && userIdentifier && 
+                   (orderCustomer === userIdentifier || orderCustomer === currentUser.email?.split('@')[0]);
+          });
+          setCustomerOrders(myLocalOrders);
+        }
+      } catch (error) {
+        console.error('Lỗi đọc localStorage:', error);
+      }
+    }
+
+    // 3. Mở Modal hiển thị
+    setShowOrderHistory(true);
+  };
+ // --- HÀM HỦY ĐƠN HÀNG (ĐỒNG BỘ MYSQL & LOCALSTORAGE) ---
+  const handleCancelOrder = async (orderId) => {
+    if (window.confirm(`Bạn có chắc chắn muốn hủy đơn hàng #${orderId}?`)) {
+      try {
+        // 1. Gọi API gửi yêu cầu hủy đơn sang Backend MySQL
+        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+          method: 'PUT'
+        });
+        if (res.ok) {
+          // 2. Tải lại danh sách đơn hàng mới nhất từ MySQL CSDL
+          if (typeof fetchUserOrders === 'function') {
+            await fetchUserOrders();
+          }
+          // 3. Cập nhật ngay state giao diện Modal của khách hàng
+         setCustomerOrders((prevOrders) =>
+          prevOrders.filter((order) => {
+            const currentId = order.id || order.order_code;
+            return currentId !== orderId;
+          })
+          );
+          // 4. Đồng bộ cập nhật cả vào localStorage (nếu có)
+          const savedOrders = JSON.parse(localStorage.getItem('orders')) || [];
+          const updatedOrders = savedOrders.map((order) => {
+            const currentId = order.id || order.order_code;
+            return currentId === orderId ? { ...order, status: 'Đã hủy' } : order;
+          });
+          localStorage.setItem('orders', JSON.stringify(updatedOrders));
+          alert('Đã hủy đơn hàng thành công!');
+        } else {
+          alert('Hủy đơn hàng thất bại!');
+        }
+      } catch (error) {
+        console.error('Lỗi khi hủy đơn hàng:', error);
+        alert('Không thể kết nối đến máy chủ Backend!');
+      }
+    }
+  };
+  // 3. Effect quản lý Thông báo
   useEffect(() => {
-    // 1. Hàm đọc và hiển thị thông báo
     const checkAndShowNotification = () => {
       const savedNotice = localStorage.getItem('latest_notification');
       if (savedNotice) {
@@ -152,7 +265,6 @@ export default function ShopPage() {
           const parsedNotice = JSON.parse(savedNotice);
           setNotification(parsedNotice.message);
 
-          // Ẩn thông báo sau 4 giây
           setTimeout(() => {
             setNotification(null);
           }, 4000);
@@ -162,10 +274,8 @@ export default function ShopPage() {
       }
     };
 
-    // 2. Chạy LẦN ĐẦU TIÊN ngay khi vừa mở/chuyển sang trang /shop
     checkAndShowNotification();
 
-    // 3. Lắng nghe Custom Event (dùng khi thao tác chung 1 tab)
     const handleCustomEvent = (e) => {
       if (e.detail?.message) {
         setNotification(e.detail.message);
@@ -175,7 +285,6 @@ export default function ShopPage() {
       }
     };
 
-    // 4. Lắng nghe Storage Event (dùng khi thao tác ở 2 tab khác nhau)
     const handleStorageEvent = (e) => {
       if (e.key === 'latest_notification') {
         checkAndShowNotification();
@@ -185,14 +294,17 @@ export default function ShopPage() {
     window.addEventListener('order_status_updated', handleCustomEvent);
     window.addEventListener('storage', handleStorageEvent);
 
+    // cleanup function PHẢI NẰM TRONG useEffect
     return () => {
       window.removeEventListener('order_status_updated', handleCustomEvent);
       window.removeEventListener('storage', handleStorageEvent);
     };
   }, []);
+
+  // 4. Các state còn lại đặt tiếp bên dưới
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user')) || { email: 'Khách hàng' };
-  
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -200,6 +312,22 @@ export default function ShopPage() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  // Hàm tải danh sách sản phẩm thực tế từ MySQL
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/products');
+      const data = await res.json();
+      setProducts(data);
+    } catch (err) {
+      console.error('Lỗi tải sản phẩm từ CSDL MySQL:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // Modal Đặt hàng (nhập thông tin) & Modal Hóa đơn
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -246,12 +374,12 @@ export default function ShopPage() {
         );
       } else {
         return [
-          ...prevCart, 
-          { 
-            ...product, 
-            color: variant.color, 
-            image: variant.image || product.image, 
-            quantity: 1 
+          ...prevCart,
+          {
+            ...product,
+            color: variant.color,
+            image: variant.image || product.image,
+            quantity: 1
           }
         ];
       }
@@ -286,29 +414,80 @@ export default function ShopPage() {
   };
 
   // Xác nhận Thanh toán từ Form thông tin
-  const handleFinalPayment = (e) => {
+  const handleFinalPayment = async (e) => {
     e.preventDefault();
 
-    const newInvoice = {
-      id: 'HD' + Date.now().toString().slice(-6),
-      date: new Date().toLocaleString('vi-VN'),
-      customer: shippingInfo.fullName || user.email || 'Khách hàng',
-      phone: shippingInfo.phone,
-      address: shippingInfo.address,
-      paymentMethod: shippingInfo.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản ngân hàng',
-      items: [...cart],
-      totalAmount: totalPrice,
+    // 1. Chuẩn hóa giá trị số cho tổng tiền và từng sản phẩm (loại bỏ ký tự 'đ', '.', khoảng trắng)
+    const cleanTotalPrice = typeof totalPrice === 'number' 
+      ? totalPrice 
+      : Number(totalPrice.toString().replace(/[^0-9]/g, ''));
+
+    const formattedItems = cart.map(item => {
+      const itemPrice = item.price || item.rawPrice || 0;
+      const cleanPrice = typeof itemPrice === 'number' 
+        ? itemPrice 
+        : Number(itemPrice.toString().replace(/[^0-9]/g, ''));
+
+      return {
+        product_id: item.id,
+        quantity: item.quantity,
+        price: cleanPrice,
+        color: item.color || 'Tiêu chuẩn'
+      };
+    });
+
+    // 2. Tạo đối tượng dữ liệu chuẩn khớp với CSDL MySQL
+    const newOrderData = {
+      user_id: user?.id || 1, // ID người dùng (nếu có)
+      recipient_name: shippingInfo.fullName || user.email || 'Khách hàng',
+      customerName: shippingInfo.fullName || user.email || 'Khách hàng',
+      email: user.email || 'khach@gmail.com',
+      phone: shippingInfo.phone || '0900000000',
+      shipping_address: shippingInfo.address || 'Đà Nẵng',
+      total_amount: cleanTotalPrice,
+      totalAmount: cleanTotalPrice,
+      items: formattedItems
     };
 
-    const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
-    localStorage.setItem('orders', JSON.stringify([newInvoice, ...existingOrders]));
+    try {
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrderData)
+      });
 
-    setCurrentInvoice(newInvoice);
-    setCart([]);
-    setIsCheckoutOpen(false);
+      const data = await response.json();
+
+      if (response.ok) {
+        // Tạo hóa đơn hiển thị thành công cho người dùng
+        const newInvoice = {
+          id: 'HD' + (data.orderId || Date.now().toString().slice(-6)),
+          date: new Date().toLocaleString('vi-VN'),
+          customer: shippingInfo.fullName || user.email || 'Khách hàng',
+          phone: shippingInfo.phone,
+          address: shippingInfo.address,
+          paymentMethod: shippingInfo.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản ngân hàng',
+          items: [...cart],
+          totalAmount: cleanTotalPrice,
+        };
+
+        setCurrentInvoice(newInvoice);
+        setCart([]);
+        setIsCheckoutOpen(false);
+        fetchProducts();   // Cập nhật lại kho
+        fetchUserOrders();
+
+        alert('🎉 Đặt hàng thành công!');
+      } else {
+        alert(data.message || 'Đặt hàng thất bại!');
+      }
+    } catch (error) {
+      console.error('Lỗi khi đặt hàng:', error);
+      alert('Không thể kết nối đến máy chủ Backend!');
+    }
   };
 
-  const filteredProducts = PRODUCTS.filter((item) => {
+  const filteredProducts = products.filter((item) => {
     const keyword = searchTerm.toLowerCase();
     const matchesSearch = item.name.toLowerCase().includes(keyword) || item.specs.toLowerCase().includes(keyword);
     
@@ -318,7 +497,6 @@ export default function ShopPage() {
   });
 
   return (
-    
     <div className="shop-container">
       {/* Header */}
       <header className="shop-header">
@@ -327,24 +505,35 @@ export default function ShopPage() {
         </div>
 
         <div className="search-section">
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm..." 
+          <input
+            type="text"
+            placeholder="Tìm kiếm..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
         <div className="user-section">
-          <span>Xin chào, <strong>{user.email ? user.email.split('@')[0] : 'Khách'}</strong></span>
-          <button className="cart-btn" onClick={() => setIsCartOpen(!isCartOpen)}>
-            🛒 Giỏ hàng ({totalCartCount})
-          </button>
-
-          <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
-            ⇥ Đăng xuất
-          </button>
+        <div className="user-greeting">
+          <span className="greeting-text">Xin chào,</span>
+          <strong className="username">{user.email ? user.email.split('@')[0] : 'Khách'}</strong>
         </div>
+        
+        {/* Nút Giỏ hàng */}
+        <button className="cart-btn" onClick={() => setIsCartOpen(!isCartOpen)}>
+          🛒 Giỏ hàng ({totalCartCount})
+        </button>
+
+        {/* 📜 NÚT LỊCH SỬ MUA HÀNG ĐẶT Ở ĐÂY */}
+        <button className="btn-order-history" onClick={handleOpenOrderHistory}>
+          📜 Lịch sử
+        </button>
+
+        {/* Nút Đăng xuất */}
+        <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
+          🚪 Đăng xuất
+        </button>
+      </div>
       </header>
 
       {/* Banner */}
@@ -366,46 +555,84 @@ export default function ShopPage() {
         ))}
       </div>
 
-      {/* Grid sản phẩm */}
-      <main className="shop-main">
-        <h3>
-          {searchTerm ? `Kết quả tìm kiếm cho "${searchTerm}" (${filteredProducts.length})` : `Danh Sách Sản Phẩm (${filteredProducts.length})`}
-        </h3>
+     {/* Grid sản phẩm */}
+<main className="shop-main">
+  <h3>
+    {searchTerm ? `Kết quả tìm kiếm cho "${searchTerm}" (${filteredProducts.length})` : `Danh Sách Sản Phẩm (${filteredProducts.length})`}
+  </h3>
 
-        {filteredProducts.length > 0 ? (
-          <div className="product-grid">
-            {filteredProducts.map((item) => {
-              const defaultImg = item.variants && item.variants.length > 0 ? item.variants[0].image : item.image;
-              return (
-                <div key={item.id} className="product-card" onClick={() => handleOpenModal(item)}>
-                  <img src={defaultImg} alt={item.name} />
-                  
-                  <h4>{item.name}</h4>
-                  <p className="price">{item.price}</p>
-                  
-                  {item.variants && (
-                    <span className="color-count-tag">{item.variants.length} màu sắc</span>
-                  )}
+  {filteredProducts.length > 0 ? (
+    <div className="product-grid">
+      {filteredProducts.map((item) => {
+        // 1. Khớp chính xác sản phẩm tĩnh theo TÊN (loại bỏ khoảng trắng và không phân biệt hoa thường)
+        const localProduct = PRODUCTS.find(p => 
+          p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+        );
 
-                  <button 
-                    className="add-cart-btn" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCart(item);
-                    }}
-                  >
-                    + Thêm Vào Giỏ
-                  </button>
-                </div>
-              );
+        // 2. Lấy biến thể màu sắc từ DB hoặc file tĩnh
+        const itemVariants = (item.variants && item.variants.length > 0) 
+          ? item.variants 
+          : (localProduct?.variants || []);
+
+        // 3. Lấy ảnh chính xác theo thứ tự ưu tiên
+        const defaultImg = 
+          item.image ||
+          (item.variants && item.variants.length > 0 && item.variants[0].image) ||
+          localProduct?.image ||
+          (localProduct?.variants && localProduct.variants.length > 0 && localProduct.variants[0].image) ||
+          'https://via.placeholder.com/200';
+
+        // 4. Định dạng giá tiền chuẩn Việt Nam (VD: 650000 -> 650.000đ)
+        const formattedPrice = item.price 
+          ? Number(item.price).toLocaleString('vi-VN') + 'đ' 
+          : (localProduct?.price || '0đ');
+
+        return (
+          <div 
+            key={item.id} 
+            className="product-card" 
+            onClick={() => handleOpenModal({ 
+              ...localProduct, 
+              ...item, 
+              price: formattedPrice, 
+              variants: itemVariants 
             })}
+          >
+            <img 
+              src={defaultImg} 
+              alt={item.name} 
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://via.placeholder.com/200';
+              }}
+            />
+            
+            <h4>{item.name}</h4>
+            <p className="price">{formattedPrice}</p>
+            
+            {itemVariants.length > 0 && (
+              <span className="color-count-tag">{itemVariants.length} màu sắc</span>
+            )}
+
+            <button 
+              className="add-cart-btn" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart({ ...item, price: formattedPrice });
+              }}
+            >
+              + Thêm Vào Giỏ
+            </button>
           </div>
-        ) : (
-          <p style={{ textAlign: 'center', marginTop: '30px', color: '#64748b' }}>
-            Không tìm thấy sản phẩm nào phù hợp.
-          </p>
-        )}
-      </main>
+        );
+      })}
+    </div>
+  ) : (
+    <p style={{ textAlign: 'center', marginTop: '30px', color: '#64748b' }}>
+      Không tìm thấy sản phẩm nào phù hợp.
+    </p>
+  )}
+</main>
 
       {/* Modal Chi Tiết Sản Phẩm & Chọn Màu */}
       {selectedProduct && selectedVariant && (
@@ -532,15 +759,19 @@ export default function ShopPage() {
               </div>
 
               <div className="form-group">
-                <label>Số điện thoại:</label>
-                <input 
-                  type="tel" 
-                  required 
-                  placeholder="Nhập số điện thoại liên hệ"
-                  value={shippingInfo.phone}
-                  onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
-                />
-              </div>
+              <label>Số điện thoại:</label>
+              <input 
+                type="tel" 
+                required 
+                placeholder="Nhập số điện thoại liên hệ"
+                value={shippingInfo.phone}
+                maxLength={11}
+                onChange={(e) => {
+                const onlyNums = e.target.value.replace(/\D/g, '');
+                setShippingInfo({ ...shippingInfo, phone: onlyNums });
+                }}
+              />
+            </div>
 
               <div className="form-group">
                 <label>Địa chỉ nhận hàng:</label>
@@ -636,17 +867,83 @@ export default function ShopPage() {
           </div>
         </div>
       )}
-      {/* POPUP THÔNG BÁO DÀNH CHO KHÁCH HÀNG */}
-      {notification && (
-        <div className="customer-toast-notification">
-          <div className="toast-icon">🔔</div>
-          <div className="toast-body">
-            <h4>Cập nhật đơn hàng</h4>
-            <p>{notification}</p>
+      {/* 📜 MODAL LỊCH SỬ MUA HÀNG */}
+      {showOrderHistory && (
+      <div className="modal-overlay" onClick={() => setShowOrderHistory(false)}>
+        <div className="history-modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="history-modal-header">
+            <h3>📜 Lịch Sử Đơn Hàng Của Bạn</h3>
+            <button className="close-btn" onClick={() => setShowOrderHistory(false)}>✕</button>
           </div>
-          <button className="toast-close" onClick={() => setNotification(null)}>✕</button>
+
+          <div className="history-modal-body">
+            {customerOrders.length > 0 ? (
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Mã Đơn</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                    <th style={{ textAlign: 'center' }}>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerOrders.map((order) => (
+                    <tr key={order.id || order.order_code}>
+                      <td><strong>{order.id || order.order_code}</strong></td>
+                      <td style={{ color: '#059669', fontWeight: '600' }}>
+                        {(() => {
+                          const amount = order.totalAmount || order.totalPrice || order.total || order.total_amount || 0;
+                          // Ép kiểu chuỗi số từ MySQL về Number để định dạng thành 1.290.000đ
+                          const num = Number(amount.toString().replace(/[^0-9.]/g, ''));
+                          return !isNaN(num) && num > 0 
+                            ? num.toLocaleString('vi-VN') + 'đ' 
+                            : '0đ';
+                        })()}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${
+                          order.status === 'Đã giao' ? 'delivered' : order.status === 'Đã hủy' ? 'cancelled' : 'pending'
+                        }`}>
+                          {order.status === 'Đã giao' && '✅ Đã giao'}
+                          {order.status === 'Đã hủy' && '❌ Đã hủy'}
+                          {order.status !== 'Đã giao' && order.status !== 'Đã hủy' && '⏳ Đang xử lý'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {/* CHỈ GIỮ 1 CỘT THAO TÁC NÀY */}
+                        {order.status !== 'Đã giao' && order.status !== 'Đã hủy' ? (
+                          <button 
+                            className="btn-cancel-order" 
+                            onClick={() => handleCancelOrder(order.id || order.order_code)}
+                          >
+                            Hủy đơn
+                          </button>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="no-orders-text">Bạn chưa có đơn hàng nào.</p>
+            )}
+          </div>
         </div>
-      )}
+      </div>
+)}
+
+    <div className="shop-page">
+      {/* 1. Header & Navigation */}
+      {/* 2. Banner quảng cáo */}
+      {/* 3. Danh sách sản phẩm */}
+
+      {/* 4. Footer chân trang */}
+      <Footer />
+    </div>
     </div>
   );
 }
+

@@ -3,93 +3,161 @@ import './EmployeePage.css';
 
 const EmployeePage = () => {
   const [activeTab, setActiveTab] = useState('orders');
-  
-  // 🆕 State quản lý việc đóng/mở Modal đăng xuất
+  // State quản lý việc đóng/mở Modal đăng xuất
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  // 1. Quản lý Đơn hàng & Sản phẩm (Kết nối MySQL)
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  // Hàm tải dữ liệu thực tế từ MySQL Database qua Backend
+  const loadDashboardData = async () => {
+    try {
+      // Tải danh sách tồn kho sản phẩm
+      const resProducts = await fetch('http://localhost:5000/api/products');
+      const dataProducts = await resProducts.json();
+      // Bọc an toàn: Kiểm tra nếu đúng là mảng thì mới lưu vào state
+      if (Array.isArray(dataProducts)) {
+        setProducts(dataProducts);
+      } else {
+        console.error('Dữ liệu sản phẩm trả về không phải mảng:', dataProducts);
+        setProducts([]);
+      }
 
-  // 1. Quản lý Đơn hàng
-  const [orders, setOrders] = useState(() => {
-    const savedOrders = localStorage.getItem('orders') || localStorage.getItem('app_orders');
-    return savedOrders ? JSON.parse(savedOrders) : [
-      { id: 'DH001', customer: 'Nguyễn Văn A', phone: '0901234567', total: '650.000đ', status: 'Đang xử lý' },
-      { id: 'DH002', customer: 'Trần Thị B', phone: '0987654321', total: '1.290.000đ', status: 'Đã giao' },
-    ];
-  });
+      // Tải danh sách đơn hàng
+      const resOrders = await fetch('http://localhost:5000/api/orders');
+      const dataOrders = await resOrders.json();
+      // Bọc an toàn: Kiểm tra nếu đúng là mảng thì mới lưu vào state
+      if (Array.isArray(dataOrders)) {
+        setOrders(dataOrders);
+      } else {
+        console.error('Dữ liệu đơn hàng trả về không phải mảng (Có thể lỗi 500 Backend):', dataOrders);
+        setOrders([]);
+      }
+    } catch (err) {
+      console.error('Lỗi tải dữ liệu từ CSDL MySQL:', err);
+      setProducts([]);
+      setOrders([]);
+    }
+  };
+  
 
-  // 2. Quản lý Sản phẩm
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Nokia 105 4G', price: '650.000đ', stock: 15, category: 'Phím bấm' },
-    { id: 2, name: 'Nokia 3310 (2017)', price: '1.050.000đ', stock: 8, category: 'Phím bấm' },
-    { id: 3, name: 'iPhone 13 128GB', price: '13.990.000đ', stock: 5, category: 'Apple' },
-    { id: 4, name: 'Samsung Galaxy A55 5G', price: '9.990.000đ', stock: 10, category: 'Samsung' },
-  ]);
+  // Tự động tải dữ liệu khi trang vừa mở
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  // Lưu vào localStorage mỗi khi có thay đổi sản phẩm
+  useEffect(() => {
+    if (Array.isArray(products) && products.length > 0) {
+      localStorage.setItem('app_products', JSON.stringify(products));
+    }
+  }, [products]);
 
   // 3. Quản lý Khách hàng
   const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
     const customerMap = {};
-    orders.forEach((order) => {
-      const key = order.customer || 'Khách hàng';
-      if (!customerMap[key]) {
-        customerMap[key] = {
-          id: `KH_${Math.floor(1000 + Math.random() * 9000)}`,
-          name: key,
-          phone: order.phone || '090xxxxxxx',
-          email: order.email || `${key.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
-          totalOrders: 1,
-        };
-      } else {
-        customerMap[key].totalOrders += 1;
-      }
-    });
+    // Bọc kiểm tra Array.isArray để tuyệt đối không bao giờ bị sập trang
+    if (Array.isArray(orders)) {
+      orders.forEach((order) => {
+        const key = order.customer_name || order.customer || 'Khách hàng';
+        if (!customerMap[key]) {
+          customerMap[key] = {
+            id: `KH_${Math.floor(1000 + Math.random() * 9000)}`,
+            name: key,
+            phone: order.customer_phone || order.phone || '090xxxxxxx',
+            email: order.email || `${key.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
+            totalOrders: 1,
+          };
+        } else {
+          customerMap[key].totalOrders += 1;
+        }
+      });
+    }
     setCustomers(Object.values(customerMap));
   }, [orders]);
 
-  // --- HÀM THAO TÁC ĐƠN HÀNG ---
- // Đổi trạng thái giao hàng và gửi thông báo sang trang Khách hàng
-  const handleStatusChange = (orderId, newStatus) => {
-    const updatedOrders = orders.map((order) =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
+  // --- HÀM THAO TÁC ĐƠN HÀNG (ĐỒNG BỘ CSDL MYSQL & LOCALSTORAGE) ---
+  const handleStatusChange = async (orderId, newStatus) => {
+    if (!Array.isArray(orders)) return;
 
-    setOrders(updatedOrders);
-    
-    // 1. Lưu danh sách đơn hàng cập nhật vào localStorage
-    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+    try {
+      // 1. Gửi request cập nhật trạng thái mới sang Backend MySQL
+      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-    // 2. Nếu chuyển sang trạng thái "Đã giao", tạo dữ liệu thông báo
-    if (newStatus === 'Đã giao') {
-      const noticeObj = {
-        id: Date.now(),
-        orderId,
-        message: `Đơn hàng #${orderId} của bạn đã được giao thành công!`,
-        time: new Date().toLocaleTimeString('vi-VN')
-      };
+      if (res.ok) {
+        // 2. Cập nhật State React ở giao diện Nhân viên
+        const updatedOrders = orders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        );
+        setOrders(updatedOrders);
+        localStorage.setItem('orders', JSON.stringify(updatedOrders));
 
-      // Lưu vào localStorage để Tab khác bắt được sự kiện
-      localStorage.setItem('latest_notification', JSON.stringify(noticeObj));
+        // 3. Tạo thông báo tới khách hàng (giữ nguyên logic thông báo của bạn)
+        if (newStatus === 'Đã giao') {
+          const noticeObj = {
+            id: Date.now(),
+            orderId,
+            message: `Đơn hàng #${orderId} của bạn đã được giao thành công!`,
+            time: new Date().toLocaleTimeString('vi-VN')
+          };
 
-      // Phát CustomEvent để Tab hiện tại (nếu dùng chung) bắt được ngay
-      window.dispatchEvent(
-        new CustomEvent('order_status_updated', {
-          detail: noticeObj
-        })
-      );
+          localStorage.setItem('latest_notification', JSON.stringify(noticeObj));
+
+          window.dispatchEvent(
+            new CustomEvent('order_status_updated', {
+              detail: noticeObj
+            })
+          );
+        }
+
+        alert(`Đã cập nhật đơn hàng #${orderId} sang trạng thái "${newStatus}"!`);
+      } else {
+        alert('Cập nhật trạng thái vào CSDL thất bại!');
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật trạng thái đơn hàng:', error);
+      alert('Không thể kết nối đến máy chủ Backend!');
     }
   };
 
-  const handleDeleteOrder = (orderId) => {
-    if (window.confirm(`Bạn có chắc muốn xóa đơn hàng #${orderId}?`)) {
-      const updatedOrders = orders.filter((order) => order.id !== orderId);
-      setOrders(updatedOrders);
-      localStorage.setItem('orders', JSON.stringify(updatedOrders));
+ const handleDeleteOrder = async (orderId) => {
+    if (window.confirm(`Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${orderId} khỏi CSDL?`)) {
+      try {
+        // 1. Gọi API DELETE gửi sang Backend MySQL
+        const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+          method: 'DELETE'
+        });
+
+        if (res.ok) {
+          // 2. Cập nhật State giao diện ngay lập tức
+          if (Array.isArray(orders)) {
+            const updatedOrders = orders.filter((order) => order.id !== orderId);
+            setOrders(updatedOrders);
+            localStorage.setItem('orders', JSON.stringify(updatedOrders));
+          }
+          alert(`Đã xóa vĩnh viễn đơn hàng #${orderId}!`);
+        } else {
+          const errorData = await res.json();
+          alert(`Xóa thất bại: ${errorData.message || 'Lỗi hệ thống'}`);
+        }
+      } catch (error) {
+        console.error('Lỗi khi xóa đơn hàng:', error);
+        alert('Không thể kết nối đến máy chủ Backend!');
+      }
     }
   };
 
   // --- HÀM THAO TÁC SẢN PHẨM ---
   const handleDeleteProduct = (productId, productName) => {
     if (window.confirm(`Bạn có chắc muốn xóa sản phẩm "${productName}"?`)) {
+      if (!Array.isArray(products)) return;
       setProducts(products.filter((prod) => prod.id !== productId));
     }
   };
@@ -97,11 +165,12 @@ const EmployeePage = () => {
   // --- HÀM THAO TÁC KHÁCH HÀNG ---
   const handleDeleteCustomer = (customerId, customerName) => {
     if (window.confirm(`Bạn có chắc muốn xóa khách hàng "${customerName}"?`)) {
+      if (!Array.isArray(customers)) return;
       setCustomers(customers.filter((cust) => cust.id !== customerId));
     }
   };
 
-  // 🆕 HÀM XÁC NHẬN ĐĂNG XUẤT THẬT SUẤT
+  // HÀM XÁC NHẬN ĐĂNG XUẤT THẬT SUẤT
   const confirmLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -174,7 +243,14 @@ const EmployeePage = () => {
                       <td><strong className="text-blue">{order.id}</strong></td>
                       <td>{order.customer}</td>
                       <td>{order.phone || 'N/A'}</td>
-                      <td>{typeof order.total === 'number' ? order.total.toLocaleString('vi-VN') + 'đ' : order.total}</td>
+                      <td>
+                        {(() => {
+                          const amount = order.totalAmount || order.totalPrice || order.total || 0;
+                          return typeof amount === 'number'
+                            ? amount.toLocaleString('vi-VN') + 'đ'
+                            : (amount || '0đ');
+                        })()}
+                      </td>
                       <td>
                         <span className={`status-tag ${order.status === 'Đã giao' ? 'delivered' : 'pending'}`}>
                           {order.status}
@@ -226,7 +302,7 @@ const EmployeePage = () => {
                 {products.length > 0 ? (
                   products.map((prod) => (
                     <tr key={prod.id}>
-                      <td><strong>#{prod.id}</strong></td>
+                      <td><strong>{prod.id}</strong></td>
                       <td><strong>{prod.name}</strong></td>
                       <td>{prod.category}</td>
                       <td>{prod.price}</td>

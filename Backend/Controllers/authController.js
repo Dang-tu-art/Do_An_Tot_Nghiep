@@ -4,7 +4,9 @@ const jwt = require('jsonwebtoken');
 
 // ==================== XỬ LÝ ĐĂNG KÝ ====================
 exports.register = async (req, res) => {
-  const { username, password, full_name, email, phone, role } = req.body;
+  // Lấy dữ liệu từ req.body (hỗ trợ cả full_name, fullName hoặc name từ Frontend)
+  const { username, password, email, phone, role } = req.body;
+  const full_name = req.body.full_name || req.body.fullName || req.body.name;
 
   // 1. Kiểm tra thông tin bắt buộc
   if (!username || !password || !full_name || !email) {
@@ -33,7 +35,7 @@ exports.register = async (req, res) => {
     // 5. Lưu người dùng mới vào database
     await db.execute(
       'INSERT INTO users (username, password, full_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [username, hashedPassword, full_name, email, phone || null, userRole]   // ← userRole thay cho 'CUSTOMER'
+      [username, hashedPassword, full_name, email, phone || null, userRole]
     );
 
     res.status(201).json({ message: 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.' });

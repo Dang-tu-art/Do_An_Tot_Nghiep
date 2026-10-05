@@ -116,15 +116,15 @@ export default function AuthPage() {
                 <>
                   <div className="input-group">
                     <User className="input-icon" size={20} />
-                    <input type="text" name="full_name" placeholder="Họ và tên" onChange={handleChange} required />
+                    <input type="text" name="full_name" placeholder="Họ và tên" value={formData.full_name} onChange={handleChange} required />
                   </div>
                   <div className="input-group">
                     <Mail className="input-icon" size={20} />
-                    <input type="email" name="email" placeholder="Địa chỉ Email" onChange={handleChange} required />
+                    <input type="email" name="email" placeholder="Địa chỉ Email" value={formData.email} onChange={handleChange} required />
                   </div>
                   <div className="input-group">
                     <Phone className="input-icon" size={20} />
-                    <input type="text" name="phone" placeholder="Số điện thoại" onChange={handleChange} />
+                    <input type="text" name="phone" placeholder="Số điện thoại" value={formData.phone}   onChange={handleChange} />
                   </div>
 
                   {/* Lựa chọn vai trò Tài khoản khi Đăng ký */}
@@ -154,11 +154,11 @@ export default function AuthPage() {
 
               <div className="input-group">
                 <User className="input-icon" size={20} />
-                <input type="text" name="username" placeholder="Tên đăng nhập" onChange={handleChange} required />
+                <input type="text" name="username" placeholder="Tên đăng nhập" value={formData.username} onChange={handleChange} required />
               </div>
               <div className="input-group">
                 <Lock className="input-icon" size={20} />
-                <input type="password" name="password" placeholder="Mật khẩu" onChange={handleChange} required />
+                <input type="password" name="password" placeholder="Mật khẩu" value={formData.password} onChange={handleChange} required />
               </div>
 
               {isLogin && (
@@ -191,6 +191,15 @@ export default function AuthPage() {
                   onClick={() => {
                     setIsLogin(!isLogin);
                     setMessage({ text: '', type: '' });
+                    // Reset lại form khi chuyển tab
+                    setFormData({
+                      username: '',
+                      password: '',
+                      full_name: '',
+                      email: '',
+                      phone: '',
+                      role: 'CUSTOMER'
+                    });
                   }}
                 >
                   {isLogin ? 'Đăng ký ngay' : 'Đăng nhập'}
