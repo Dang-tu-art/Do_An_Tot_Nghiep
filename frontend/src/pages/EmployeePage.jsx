@@ -244,12 +244,7 @@ const EmployeePage = () => {
                       <td>{order.customer}</td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
-                        {(() => {
-                          const amount = order.totalAmount || order.totalPrice || order.total || 0;
-                          return typeof amount === 'number'
-                            ? amount.toLocaleString('vi-VN') + 'đ'
-                            : (amount || '0đ');
-                        })()}
+                        {Number(order.totalAmount || order.totalPrice || order.total || 0).toLocaleString('vi-VN')}đ
                       </td>
                       <td>
                         <span className={`status-tag ${order.status === 'Đã giao' ? 'delivered' : 'pending'}`}>

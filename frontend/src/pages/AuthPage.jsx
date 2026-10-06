@@ -44,14 +44,17 @@ export default function AuthPage() {
         setMessage({ text: '✅ Đăng nhập thành công! Đang chuyển hướng...', type: 'success' });
 
         // 🔄 TỰ ĐỘNG ĐIỀU HƯỚNG THEO VAI TRÒ TÀI KHOẢN
-        setTimeout(() => {
-          const userRole = userObj?.role?.toUpperCase();
-          if (userRole === 'STAFF' || userRole === 'EMPLOYEE' || userRole === 'ADMIN') {
-            navigate('/employee'); // Chuyển đến trang Nhân viên
-          } else {
-            navigate('/shop');     // Chuyển đến trang Cửa hàng
-          }
-        }, 1200);
+       setTimeout(() => {
+        const userRole = userObj?.role?.toUpperCase();
+        
+        if (userRole === 'ADMIN') {
+          navigate('/admin');     // ✅ Quản lý vào trang Admin
+        } else if (userRole === 'STAFF' || userRole === 'EMPLOYEE') {
+          navigate('/employee');  // Nhân viên vào trang Nhân viên
+        } else {
+          navigate('/shop');      // Khách hàng vào trang Cửa hàng
+        }
+      }, 1200);
 
       } else {
         setMessage({ text: '✅ Đăng ký thành công! Hãy chuyển sang Đăng nhập.', type: 'success' });
