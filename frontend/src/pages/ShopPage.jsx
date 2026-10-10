@@ -85,10 +85,10 @@ const PRODUCTS = [
       { color: 'Hồng', image: 'https://cdn2.fptshop.com.vn/unsafe/828x0/filters:format(webp):quality(75)/2022_3_30_637842470238437307_iphone-13-pink.jpg'},
     ]
    },
-  { id: 13, name: 'Xiaomi Redmi Note 13 Pro+', rawPrice: 9490000, price: '9.490.000đ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTu3pZh3TXDk2vMKpnrSaQWxWoZaNbbVGSuk5tf1M-x8w&s=10', category: 'Xiaomi', specs: 'Màn hình cong AMOLED 120Hz 1.5K, Camera 200MP OIS, Sạc siêu tốc HyperCharge 120W.',
+  { id: 13, name: 'Xiaomi Redmi Note 13', rawPrice: 9400000, price: '9.490.000đ', image: 'https://clickbuy.com.vn/uploads/product-variant/2_55209.jpg', category: 'Xiaomi', specs: 'Màn hình cong AMOLED 120Hz 1.5K, Camera 200MP OIS, Sạc siêu tốc HyperCharge 120W.',
      variants: [
-      { color: 'Đen', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTu3pZh3TXDk2vMKpnrSaQWxWoZaNbbVGSuk5tf1M-x8w&s=10' },
-      { color: 'Xám', image: 'https://cdni.dienthoaivui.com.vn/x,webp,q100/https://media-asset.dienthoaivui.com.vn/uploads/wp-content/uploads/images/products/250513/xiaomi-redmi-note-13-pro-plus-5g-12gb-256gb-cu-dep-17557968416698.jpg'},
+      { color: 'Xanh', image: 'https://clickbuy.com.vn/uploads/product-variant/2_55209.jpg' },
+      { color: 'Vàng nhạt', image: 'https://cdn.clickbuy.com.vn/uploads/pro/2_52992.jpg'},
      ]
    },
   { id: 14, name: 'Realme GT8 Pro', rawPrice: 8490000, price: '8.490.000đ', image: 'https://sonpixel.vn/wp-content/uploads/2025/10/realme-gt8-pro.webp', category: 'Realme', specs: 'Màn hình AMOLED 6.79 inch 144Hz, Chip Snapdragon 8 Elite Gen 5, RAM 16GB, Camera ba 50MP/50MP/200MP, Pin 7000mAh, Sạc nhanh 120W.',
@@ -315,15 +315,15 @@ export default function ShopPage() {
   const [products, setProducts] = useState([]);
 
   // Hàm tải danh sách sản phẩm thực tế từ MySQL
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/api/products');
-      const data = await res.json();
-      setProducts(data);
-    } catch (err) {
-      console.error('Lỗi tải sản phẩm từ CSDL MySQL:', err);
-    }
-  };
+ const fetchProducts = async () => {
+  try {
+    const res = await fetch('http://localhost:5000/api/products');
+    const data = await res.json();
+    setProducts([...data].reverse()); 
+  } catch (err) {
+    console.error('Lỗi tải sản phẩm từ CSDL MySQL:', err);
+  }
+};
 
   useEffect(() => {
     fetchProducts();
@@ -359,32 +359,42 @@ export default function ShopPage() {
   };
 
   const handleAddToCart = (product, variantChosen) => {
-    const variant = variantChosen || (product.variants && product.variants.length > 0 ? product.variants[0] : { color: 'Tiêu chuẩn', image: product.image || '' });
-    
-    setCart((prevCart) => {
-      const existingItem = prevCart.find(
-        (item) => item.id === product.id && item.color === variant.color
-      );
+  const variant = variantChosen || (
+    product.variants && product.variants.length > 0 
+      ? product.variants[0] 
+      : { color: 'Tiêu chuẩn', image: product.image || '' }
+  );
 
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === product.id && item.color === variant.color
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [
-          ...prevCart,
-          {
-            ...product,
-            color: variant.color,
-            image: variant.image || product.image,
-            quantity: 1
-          }
-        ];
-      }
-    });
-  };
+  const rawPrice = product.price ?? product.rawPrice ?? product.gia ?? 0;
+  const cleanPrice = typeof rawPrice === 'string'
+    ? Number(rawPrice.replace(/[^0-9]/g, ''))
+    : Number(rawPrice);
+
+  setCart((prevCart) => {
+    const existingItem = prevCart.find(
+      (item) => item.id === product.id && item.color === variant.color
+    );
+
+    if (existingItem) {
+      return prevCart.map((item) =>
+        item.id === product.id && item.color === variant.color
+          ? { ...item, quantity: item.quantity + 1, price: cleanPrice }
+          : item
+      );
+    } else {
+      return [
+        ...prevCart,
+        {
+          ...product,
+          price: cleanPrice,
+          color: variant.color,
+          image: variant.image || product.image,
+          quantity: 1
+        }
+      ];
+    }
+  });
+};
   const updateQuantity = (id, color, delta) => {
     setCart((prevCart) =>
       prevCart
@@ -403,8 +413,16 @@ export default function ShopPage() {
     setCart((prevCart) => prevCart.filter((item) => !(item.id === id && item.color === color)));
   };
 
-  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + item.rawPrice * item.quantity, 0);
+ const totalCartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
+const totalPrice = cart.reduce((sum, item) => {
+  // Lọc lấy nguyên các chữ số (loại bỏ dấu chấm, chữ 'đ', khoảng trắng...)
+  const priceNum = typeof item.price === 'string'
+    ? Number(item.price.replace(/[^0-9]/g, ''))
+    : Number(item.price || item.rawPrice || 0);
+
+  return sum + priceNum * (item.quantity || 1);
+}, 0);
 
   // Mở modal Đặt hàng khi bấm nút trong Giỏ hàng
   const handleOpenCheckout = () => {
@@ -687,53 +705,62 @@ export default function ShopPage() {
           </div>
         </div>
       )}
-      {/* GIỎ HÀNG MINI */}
-      {isCartOpen && (
-        <div className="mini-cart-overlay" onClick={() => setIsCartOpen(false)}>
-          <div className="mini-cart-box" onClick={(e) => e.stopPropagation()}>
-            <div className="mini-cart-header">
-              <h4>🛒 Giỏ hàng của bạn ({totalCartCount})</h4>
-              <button className="mini-close-btn" onClick={() => setIsCartOpen(false)}>✕</button>
-            </div>
+    {/* GIỎ HÀNG MINI */}
+{isCartOpen && (
+  <div className="mini-cart-overlay" onClick={() => setIsCartOpen(false)}>
+    <div className="mini-cart-box" onClick={(e) => e.stopPropagation()}>
+      <div className="mini-cart-header">
+        <h4>🛒 Giỏ hàng của bạn ({totalCartCount})</h4>
+        <button className="mini-close-btn" onClick={() => setIsCartOpen(false)}>✕</button>
+      </div>
 
-            {cart.length === 0 ? (
-              <p className="mini-empty-text">Chưa có sản phẩm nào trong giỏ.</p>
-            ) : (
-              <>
-                <div className="mini-cart-list">
-                  {cart.map((item) => (
-                    <div key={`${item.id}-${item.color}`} className="mini-cart-item">
-                      <img src={item.image} alt={item.name} className="mini-item-img" />
-                      <div className="mini-item-details">
-                        <span className="mini-item-name">{item.name}</span>
-                        <span className="mini-item-color">Màu: {item.color}</span>
-                        <span className="mini-item-price">{item.price}</span>
-                      </div>
-                      <div className="mini-item-qty">
-                        <button onClick={() => updateQuantity(item.id, item.color, -1)}>-</button>
-                        <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.id, item.color, 1)}>+</button>
-                      </div>
-                      <button className="mini-remove-btn" onClick={() => removeFromCart(item.id, item.color)}>✕</button>
-                    </div>
-                  ))}
-                </div>
+      {cart.length === 0 ? (
+        <p className="mini-empty-text">Chưa có sản phẩm nào trong giỏ.</p>
+      ) : (
+        <>
+          <div className="mini-cart-list">
+            {cart.map((item) => {
+              const priceNumber = typeof item.price === 'string'
+                ? Number(item.price.replace(/[^0-9]/g, ''))
+                : Number(item.price || 0);
 
-                <div className="mini-cart-footer">
-                  <div className="mini-total-line">
-                    <span>Tổng tiền:</span>
-                    <strong>{totalPrice.toLocaleString('vi-VN')}đ</strong>
+              return (
+                <div key={`${item.id}-${item.color}`} className="mini-cart-item">
+                  <img src={item.image} alt={item.name} className="mini-item-img" />
+                  <div className="mini-item-details">
+                    <span className="mini-item-name">{item.name}</span>
+                    <span className="mini-item-color">Màu: {item.color}</span>
+                    <span className="mini-item-price">
+                      {priceNumber.toLocaleString('vi-VN')}đ
+                    </span>
                   </div>
-                  <button className="mini-checkout-btn" onClick={handleOpenCheckout}>
-                    Đặt hàng
-                  </button>
+                  <div className="mini-item-qty">
+                    <button onClick={() => updateQuantity(item.id, item.color, -1)}>-</button>
+                    <span>{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.id, item.color, 1)}>+</button>
+                  </div>
+                  <button className="mini-remove-btn" onClick={() => removeFromCart(item.id, item.color)}>✕</button>
                 </div>
-              </>
-            )}
+              );
+            })}
           </div>
-        </div>
-      )}
 
+          <div className="mini-cart-footer">
+            <div className="mini-total-line">
+              <span>Tổng tiền:</span>
+              <strong>
+                {(Number(totalPrice) || 0).toLocaleString('vi-VN')}đ
+              </strong>
+            </div>
+            <button className="mini-checkout-btn" onClick={handleOpenCheckout}>
+              Đặt hàng
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
       {/* MODAL BẢNG NHẬP THÔNG TIN ĐẶT HÀNG & XÁC NHẬN TIỀN */}
       {isCheckoutOpen && (
         <div className="modal-overlay" onClick={() => setIsCheckoutOpen(false)}>

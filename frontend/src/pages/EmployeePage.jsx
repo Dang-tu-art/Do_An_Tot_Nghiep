@@ -5,9 +5,13 @@ const EmployeePage = () => {
   const [activeTab, setActiveTab] = useState('orders');
   // State quản lý việc đóng/mở Modal đăng xuất
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
   // 1. Quản lý Đơn hàng & Sản phẩm (Kết nối MySQL)
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Hàm tải dữ liệu thực tế từ MySQL Database qua Backend
   const loadDashboardData = async () => {
     try {
@@ -29,7 +33,7 @@ const EmployeePage = () => {
       if (Array.isArray(dataOrders)) {
         setOrders(dataOrders);
       } else {
-        console.error('Dữ liệu đơn hàng trả về không phải mảng (Có thể lỗi 500 Backend):', dataOrders);
+        console.error('Dữ liệu đơn hàng trả về không phải mảng:', dataOrders);
         setOrders([]);
       }
     } catch (err) {
@@ -38,7 +42,6 @@ const EmployeePage = () => {
       setOrders([]);
     }
   };
-  
 
   // Tự động tải dữ liệu khi trang vừa mở
   useEffect(() => {
@@ -52,12 +55,15 @@ const EmployeePage = () => {
     }
   }, [products]);
 
+  const filteredProducts = Array.isArray(products) ? products.filter((prod) =>
+    prod.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
+
   // 3. Quản lý Khách hàng
   const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
     const customerMap = {};
-    // Bọc kiểm tra Array.isArray để tuyệt đối không bao giờ bị sập trang
     if (Array.isArray(orders)) {
       orders.forEach((order) => {
         const key = order.customer_name || order.customer || 'Khách hàng';
@@ -77,12 +83,11 @@ const EmployeePage = () => {
     setCustomers(Object.values(customerMap));
   }, [orders]);
 
-  // --- HÀM THAO TÁC ĐƠN HÀNG (ĐỒNG BỘ CSDL MYSQL & LOCALSTORAGE) ---
+  // --- HÀM THAO TÁC ĐƠN HÀNG ---
   const handleStatusChange = async (orderId, newStatus) => {
     if (!Array.isArray(orders)) return;
 
     try {
-      // 1. Gửi request cập nhật trạng thái mới sang Backend MySQL
       const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
@@ -92,14 +97,12 @@ const EmployeePage = () => {
       });
 
       if (res.ok) {
-        // 2. Cập nhật State React ở giao diện Nhân viên
         const updatedOrders = orders.map((order) =>
           order.id === orderId ? { ...order, status: newStatus } : order
         );
         setOrders(updatedOrders);
         localStorage.setItem('orders', JSON.stringify(updatedOrders));
 
-        // 3. Tạo thông báo tới khách hàng (giữ nguyên logic thông báo của bạn)
         if (newStatus === 'Đã giao') {
           const noticeObj = {
             id: Date.now(),
@@ -127,16 +130,14 @@ const EmployeePage = () => {
     }
   };
 
- const handleDeleteOrder = async (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
     if (window.confirm(`Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${orderId} khỏi CSDL?`)) {
       try {
-        // 1. Gọi API DELETE gửi sang Backend MySQL
         const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
           method: 'DELETE'
         });
 
         if (res.ok) {
-          // 2. Cập nhật State giao diện ngay lập tức
           if (Array.isArray(orders)) {
             const updatedOrders = orders.filter((order) => order.id !== orderId);
             setOrders(updatedOrders);
@@ -170,7 +171,7 @@ const EmployeePage = () => {
     }
   };
 
-  // HÀM XÁC NHẬN ĐĂNG XUẤT THẬT SUẤT
+  // HÀM XÁC NHẬN ĐĂNG XUẤT
   const confirmLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -238,9 +239,9 @@ const EmployeePage = () => {
               </thead>
               <tbody>
                 {orders.length > 0 ? (
-                  orders.map((order) => (
+                  orders.map((order, index) => (
                     <tr key={order.id}>
-                      <td><strong className="text-blue">{order.id}</strong></td>
+                      <td><strong className="text-blue">{index + 1}</strong></td>
                       <td>{order.customer}</td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
@@ -280,45 +281,66 @@ const EmployeePage = () => {
             </table>
           )}
 
-          {/* 2. QUẢN LÝ SẢN PHẨM */}
+         {/* 2. QUẢN LÝ SẢN PHẨM */}
           {activeTab === 'products' && (
-            <table className="employee-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tên Sản Phẩm</th>
-                  <th>Danh Mục</th>
-                  <th>Giá Bán</th>
-                  <th>Tồn Kho</th>
-                  <th>Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length > 0 ? (
-                  products.map((prod) => (
-                    <tr key={prod.id}>
-                      <td><strong>{prod.id}</strong></td>
-                      <td><strong>{prod.name}</strong></td>
-                      <td>{prod.category}</td>
-                      <td>{prod.price}</td>
-                      <td>{prod.stock} cái</td>
-                      <td>
-                        <button
-                          className="action-btn btn-danger"
-                          onClick={() => handleDeleteProduct(prod.id, prod.name)}
-                        >
-                          Xóa
-                        </button>
+            <div>
+              {/* 🟢 Ô input tìm kiếm đặt ở đây */}
+              <div style={{ marginBottom: '15px' }}>
+                <input
+                  type="text"
+                  placeholder="Nhập tên sản phẩm cần tìm..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ 
+                    padding: '8px 12px', 
+                    width: '300px', 
+                    borderRadius: '6px', 
+                    border: '1px solid #cbd5e1',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <table className="employee-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Danh Mục</th>
+                    <th>Giá Bán</th>
+                    <th>Tồn Kho</th>
+                    <th>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map((prod, index) => (
+                      <tr key={prod.id}>
+                        <td><strong>{index + 1}</strong></td>
+                        <td><strong>{prod.name}</strong></td>
+                        <td>{prod.category}</td>
+                        <td>{prod.price}</td>
+                        <td>{prod.stock} cái</td>
+                        <td>
+                          <button
+                            className="action-btn btn-danger"
+                            onClick={() => handleDeleteProduct(prod.id, prod.name)}
+                          >
+                            Xóa
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', color: '#64748b' }}>
+                        Không tìm thấy sản phẩm phù hợp.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', color: '#64748b' }}>Chưa có sản phẩm nào.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* 3. QUẢN LÝ KHÁCH HÀNG */}

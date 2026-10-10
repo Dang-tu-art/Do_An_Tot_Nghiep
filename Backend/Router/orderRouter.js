@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcryptjs');
 
 // Kết nối CSDL MySQL (Lấy thông tin từ file .env)
 const db = mysql.createPool({
@@ -222,10 +223,14 @@ router.get('/employees', async (req, res) => {
 // 3.2 Cấp tài khoản nhân viên mới (Dành cho Admin)
 router.post('/employees', async (req, res) => {
   const { name, email, phone, password } = req.body;
+  const username = req.body.username || email;
   try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const [result] = await db.query(
-      "INSERT INTO users (full_name, email, phone, password, role) VALUES (?, ?, ?, ?, 'EMPLOYEE')",
-      [name, email, phone, password]
+      "INSERT INTO users (username, full_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, 'EMPLOYEE')",
+      [username, name, email, phone || null, hashedPassword]
     );
     res.status(201).json({ message: 'Tạo tài khoản nhân viên thành công!', id: result.insertId });
   } catch (error) {

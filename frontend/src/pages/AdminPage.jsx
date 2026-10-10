@@ -91,19 +91,22 @@ const AdminPage = () => {
   }, [orders]);
 
   // --- 📊 TÍNH TOÁN DỮ LIỆU THỐNG KÊ TỰ ĐỘNG ---
-  const totalRevenue = Array.isArray(orders)
-    ? orders.reduce((sum, order) => {
-        const amount = order.totalAmount || order.totalPrice || order.total || 0;
-        return sum + (typeof amount === 'number' ? amount : 0);
+const totalRevenue = Array.isArray(orders)
+  ? orders
+      .filter((order) => order.status === 'Đã giao') 
+      .reduce((sum, order) => {
+        const rawAmount = order.totalAmount || order.totalPrice || order.total || 0;
+        const amount = Number(rawAmount);
+        return sum + (isNaN(amount) ? 0 : amount);
       }, 0)
-    : 0;
+  : 0;
 
-  const totalOrdersCount = Array.isArray(orders) ? orders.length : 0;
-  const deliveredOrdersCount = Array.isArray(orders)
-    ? orders.filter((o) => o.status === 'Đã giao').length
-    : 0;
-  const totalProductsCount = Array.isArray(products) ? products.length : 0;
-  const totalEmployeesCount = Array.isArray(employees) ? employees.length : 0;
+const totalOrdersCount = Array.isArray(orders) ? orders.length : 0;
+const deliveredOrdersCount = Array.isArray(orders)
+  ? orders.filter((o) => o.status === 'Đã giao').length
+  : 0;
+const totalProductsCount = Array.isArray(products) ? products.length : 0;
+const totalEmployeesCount = Array.isArray(employees) ? employees.length : 0;
 
   // --- HÀM THAO TÁC ĐƠN HÀNG ---
   const handleStatusChange = async (orderId, newStatus) => {
@@ -180,50 +183,65 @@ const AdminPage = () => {
   };
 
   const handleOpenEditForm = (product) => {
-    setFormData({
-      id: product.id,
-      name: product.name || '',
-      category: product.category || 'Điện thoại',
-      brand: product.brand || 'Apple',
-      price: product.price || '',
-      stock: product.stock || 0,
-      image: product.image || ''
-    });
-    setIsEditing(true);
-    setShowProductForm(true);
-  };
-  // Hàm xử lý chọn ảnh từ máy tính
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result });
-      };
-      reader.readAsDataURL(file);
+  setFormData({
+    id: product.id,
+    name: product.name || '',
+    category: product.category || 'Điện thoại',
+    brand: product.brand || 'Apple',
+    price: product.price || '',
+    stock: product.stock || 0,
+    image: product.image || '' 
+  });
+
+  // Xử lý nếu là thương hiệu gõ tay (Khác)
+  const isStandardBrand = ['Apple', 'Samsung', 'Xiaomi', 'OPPO', 'Realme', 'Nokia'].includes(product.brand);
+  if (!isStandardBrand && product.brand) {
+    setFormData((prev) => ({ ...prev, brand: 'Khác' }));
+    if (typeof setCustomBrand === 'function') {
+      setCustomBrand(product.brand);
     }
-  };
+  }
+
+  setIsEditing(true);
+  setShowProductForm(true);
+};
+  // Hàm xử lý chọn ảnh từ máy tính
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
   const handleSaveProduct = async (e) => {
   e.preventDefault();
   const payload = {
     ...formData,
-    category: formData.category || 'Điện thoại', // 🟢 Bổ sung dòng này để tránh bị rỗng category
+    price: Number(formData.price) || 0, // Chuyển chuỗi '18900000' thành số 18900000
+    stock: Number(formData.stock) || 0,
+    category: formData.category || 'Điện thoại',
     brand: formData.brand === 'Khác' ? customBrand : formData.brand
   };
+
   const url = isEditing
     ? `http://localhost:5000/api/products/${formData.id}`
     : 'http://localhost:5000/api/products';
   const method = isEditing ? 'PUT' : 'POST';
+
   try {
     const res = await fetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload), // Send payload đã xử lý
+      body: JSON.stringify(payload),
     });
+
     if (res.ok) {
       alert(isEditing ? 'Cập nhật thông tin thành công!' : 'Thêm sản phẩm mới thành công!');
       setShowProductForm(false);
-      setCustomBrand(''); // Reset lại ô gõ tay
+      setCustomBrand('');
       loadDashboardData();
     } else {
       alert('Lưu sản phẩm thất bại!');
@@ -593,12 +611,12 @@ const AdminPage = () => {
 
         {/* TABLES CONTAINER */}
         <div className="table-wrapper">
-          {/* 2. QUẢN LÝ ĐƠN HÀNG */}
+         {/* 2. QUẢN LÝ ĐƠN HÀNG */}
           {activeTab === 'orders' && (
             <table className="employee-table">
               <thead>
                 <tr>
-                  <th>Mã Đơn</th>
+                  <th>ID</th>
                   <th>Khách Hàng</th>
                   <th>SĐT</th>
                   <th>Tổng Tiền</th>
@@ -608,10 +626,9 @@ const AdminPage = () => {
               </thead>
               <tbody>
                 {orders.length > 0 ? (
-                  orders.map((order) => (
+                  orders.map((order, index) => ( 
                     <tr key={order.id}>
-                      <td><strong className="text-blue">{order.id}</strong></td>
-                      <td>{order.customer}</td>
+                      <td><strong className="text-blue">{index + 1}</strong></td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
                         {Number(order.totalAmount || order.totalPrice || order.total || 0).toLocaleString('vi-VN')}đ
@@ -626,14 +643,14 @@ const AdminPage = () => {
                           {order.status !== 'Đã giao' && (
                             <button
                               className="action-btn btn-success"
-                              onClick={() => handleStatusChange(order.id, 'Đã giao')}
+                              onClick={() => handleStatusChange(order.id, 'Đã giao')} 
                             >
                               Xác nhận giao
                             </button>
                           )}
                           <button
                             className="action-btn btn-danger"
-                            onClick={() => handleDeleteOrder(order.id)}
+                            onClick={() => handleDeleteOrder(order.id)} 
                           >
                             Xóa
                           </button>
@@ -649,62 +666,62 @@ const AdminPage = () => {
               </tbody>
             </table>
           )}
-
           {/* 3. QUẢN LÝ SẢN PHẨM */}
-            {activeTab === 'products' && (
+          {activeTab === 'products' && (
             <table className="employee-table">
-                <thead>
+              <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Tên Sản Phẩm</th>
-                    <th>Hãng</th>
-                    <th>Giá Bán</th>
-                    <th>Tồn Kho</th>
-                    <th>Thao Tác Quản Lý</th>
+                  <th>ID</th>
+                  <th>Tên Sản Phẩm</th>
+                  <th>Hãng</th>
+                  <th>Giá Bán</th>
+                  <th>Tồn Kho</th>
+                  <th>Thao Tác Quản Lý</th>
                 </tr>
-                </thead>
-                <tbody>
+              </thead>
+              <tbody>
                 {products.length > 0 ? (
-
-                    [...products]
+                  [...products]
                     .sort((a, b) => Number(a.id) - Number(b.id))
-                    .map((prod) => (
-                        <tr key={prod.id}>
-                        <td><strong>{prod.id}</strong></td>
+                    .map((prod, index) => ( 
+                      <tr key={prod.id}>
+                        <td><strong>{index + 1}</strong></td> 
                         <td><strong>{prod.name}</strong></td>
                         <td>{prod.brand || prod.category || 'N/A'}</td>
                         <td>
-                            {Number(prod.price).toLocaleString('vi-VN')}đ
+                          {Number(prod.price).toLocaleString('vi-VN')}đ
                         </td>
 
                         <td>{prod.stock ? `${prod.stock} cái` : 'Đang bán'}</td>
                         <td>
-                            <div className="action-buttons">
+                          <div className="action-buttons">
                             <button
-                                className="action-btn"
-                                style={{ background: '#f59e0b', color: '#fff' }}
-                                onClick={() => handleOpenEditForm(prod)}
+                              className="action-btn"
+                              style={{ background: '#f59e0b', color: '#fff' }}
+                              onClick={() => handleOpenEditForm(prod)}
                             >
-                                Chỉnh sửa
+                              Chỉnh sửa
                             </button>
                             <button
-                                className="action-btn btn-danger"
-                                onClick={() => handleDeleteProduct(prod.id, prod.name)}
+                              className="action-btn btn-danger"
+                              onClick={() => handleDeleteProduct(prod.id, prod.name)} 
                             >
-                                Xóa
+                              Xóa
                             </button>
-                            </div>
+                          </div>
                         </td>
-                        </tr>
+                      </tr>
                     ))
                 ) : (
-                    <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', color: '#64748b' }}>Chưa có sản phẩm nào.</td>
-                    </tr>
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', color: '#64748b' }}>
+                      Chưa có sản phẩm nào.
+                    </td>
+                  </tr>
                 )}
-                </tbody>
+              </tbody>
             </table>
-            )}
+          )}
 
           {/* 4. QUẢN LÝ KHÁCH HÀNG */}
           {activeTab === 'customers' && (
@@ -752,7 +769,7 @@ const AdminPage = () => {
             <table className="employee-table">
               <thead>
                 <tr>
-                  <th>Mã NV</th>
+                  <th>ID</th>
                   <th>Họ và Tên</th>
                   <th>Email</th>
                   <th>Số Điện Thoại</th>
@@ -762,9 +779,9 @@ const AdminPage = () => {
               </thead>
               <tbody>
                 {employees.length > 0 ? (
-                  employees.map((emp) => (
+                  employees.map((emp, index) => (
                     <tr key={emp.id}>
-                      <td><strong>{emp.id}</strong></td>
+                      <td><strong>{index + 1}</strong></td>
                       <td><strong>{emp.name}</strong></td>
                       <td>{emp.email}</td>
                       <td>{emp.phone || 'Chưa cập nhật'}</td>
