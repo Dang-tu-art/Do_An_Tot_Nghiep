@@ -12,6 +12,16 @@ const EmployeePage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
 
+  // 3. Quản lý Khách hàng
+  const [customers, setCustomers] = useState([]);
+  
+  // 🟢 THÊM STATE VÀ BIẾN LỌC TÌM KIẾM KHÁCH HÀNG Ở ĐÂY
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+  const filteredCustomers = Array.isArray(customers) ? customers.filter((cust) =>
+    cust.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    cust.phone.includes(customerSearchTerm)
+  ) : [];
+
   // Hàm tải dữ liệu thực tế từ MySQL Database qua Backend
   const loadDashboardData = async () => {
     try {
@@ -58,9 +68,6 @@ const EmployeePage = () => {
   const filteredProducts = Array.isArray(products) ? products.filter((prod) =>
     prod.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
-
-  // 3. Quản lý Khách hàng
-  const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
     const customerMap = {};
@@ -284,7 +291,6 @@ const EmployeePage = () => {
          {/* 2. QUẢN LÝ SẢN PHẨM */}
           {activeTab === 'products' && (
             <div>
-              {/* 🟢 Ô input tìm kiếm đặt ở đây */}
               <div style={{ marginBottom: '15px' }}>
                 <input
                   type="text"
@@ -345,48 +351,69 @@ const EmployeePage = () => {
 
           {/* 3. QUẢN LÝ KHÁCH HÀNG */}
           {activeTab === 'customers' && (
-            <table className="employee-table">
-              <thead>
-                <tr>
-                  <th>Mã KH</th>
-                  <th>Họ và Tên</th>
-                  <th>Số Điện Thoại</th>
-                  <th>Email</th>
-                  <th>Đơn Đã Đặt</th>
-                  <th>Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.length > 0 ? (
-                  customers.map((cust) => (
-                    <tr key={cust.id}>
-                      <td><strong>{cust.id}</strong></td>
-                      <td>{cust.name}</td>
-                      <td>{cust.phone}</td>
-                      <td>{cust.email}</td>
-                      <td><span className="order-count-badge">{cust.totalOrders} đơn</span></td>
-                      <td>
-                        <button
-                          className="action-btn btn-danger"
-                          onClick={() => handleDeleteCustomer(cust.id, cust.name)}
-                        >
-                          Xóa
-                        </button>
+            <div>
+              {/* 🟢 Ô TÌM KIẾM KHÁCH HÀNG */}
+              <div style={{ marginBottom: '15px' }}>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo tên hoặc số điện thoại khách hàng..."
+                  value={customerSearchTerm}
+                  onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    width: '350px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <table className="employee-table">
+                <thead>
+                  <tr>
+                    <th>Mã KH</th>
+                    <th>Họ và Tên</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Email</th>
+                    <th>Đơn Đã Đặt</th>
+                    <th>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCustomers.length > 0 ? (
+                    filteredCustomers.map((cust) => (
+                      <tr key={cust.id}>
+                        <td><strong>{cust.id}</strong></td>
+                        <td>{cust.name}</td>
+                        <td>{cust.phone}</td>
+                        <td>{cust.email}</td>
+                        <td><span className="order-count-badge">{cust.totalOrders} đơn</span></td>
+                        <td>
+                          <button
+                            className="action-btn btn-danger"
+                            onClick={() => handleDeleteCustomer(cust.id, cust.name)}
+                          >
+                            Xóa
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', color: '#64748b' }}>
+                        Không tìm thấy thông tin khách hàng phù hợp.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', color: '#64748b' }}>Chưa có thông tin khách hàng.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </main>
 
-      {/*  MODAL XÁC NHẬN ĐĂNG XUẤT */}
+      {/*   MODAL XÁC NHẬN ĐĂNG XUẤT */}
       {showLogoutConfirm && (
         <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
           <div className="confirm-modal-box" onClick={(e) => e.stopPropagation()}>
