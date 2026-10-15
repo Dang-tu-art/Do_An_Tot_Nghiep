@@ -248,7 +248,14 @@ const EmployeePage = () => {
                 {orders.length > 0 ? (
                   orders.map((order, index) => (
                     <tr key={order.id}>
-                      <td><strong className="text-blue">{index + 1}</strong></td>
+                      <td>
+                        <strong>
+                          {(() => {
+                            const rawId = order.id || order.order_code || 1;
+                            return `DH${String(rawId).padStart(5, '0')}`;
+                          })()}
+                        </strong>
+                      </td>
                       <td>{order.customer}</td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
@@ -352,7 +359,6 @@ const EmployeePage = () => {
           {/* 3. QUẢN LÝ KHÁCH HÀNG */}
           {activeTab === 'customers' && (
             <div>
-              {/* 🟢 Ô TÌM KIẾM KHÁCH HÀNG */}
               <div style={{ marginBottom: '15px' }}>
                 <input
                   type="text"

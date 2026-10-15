@@ -143,13 +143,18 @@ const PRODUCTS = [
 ];
 
 export default function ShopPage() {
-
   const [userOrders, setUserOrders] = useState([]);
   const [notification, setNotification] = useState(null);
-
+  
   // State Lịch sử mua hàng
   const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [customerOrders, setCustomerOrders] = useState([]);
+
+  // State quản lý Modal Đánh giá sản phẩm (1-5 sao)
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewProductId, setReviewProductId] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
 
   // Hàm tải danh sách đơn hàng thực tế từ Backend MySQL
   const fetchUserOrders = async () => {
@@ -158,25 +163,20 @@ export default function ShopPage() {
       const data = await res.json();
       
       if (Array.isArray(data)) {
-        // Lấy thông tin user hiện tại từ localStorage hoặc State
         const savedUser = localStorage.getItem('user');
-        const currentUser = savedUser ? JSON.parse(savedUser) : (typeof user !== 'undefined' ? user : null);
+        const currentUser = savedUser ? JSON.parse(savedUser) : null;
         const userEmail = currentUser?.email || currentUser?.username || '';
-
+        
         // Lọc các đơn hàng thuộc về người dùng VÀ LOẠI BỎ ĐƠN ĐÃ HỦY
         const myOrders = data.filter(order => {
           const orderCustomer = order.customer || order.email || order.customerName;
-          
           const isMyOrder = 
             (order.email && order.email === userEmail) ||
-            (orderCustomer && userEmail && orderCustomer.toLowerCase().includes(userEmail.split('@')[0].toLowerCase())) ||
-            (order.phone && typeof shippingInfo !== 'undefined' && order.phone === shippingInfo.phone);
-
-          // Chỉ lấy đơn thuộc sở hữu VÀ trạng thái KHÁC 'Đã hủy'
+            (orderCustomer && userEmail && orderCustomer.toLowerCase().includes(userEmail.split('@')[0].toLowerCase()));
           return isMyOrder && order.status !== 'Đã hủy';
         });
         setUserOrders(myOrders);
-        setCustomerOrders(myOrders); // Đồng bộ sang customerOrders để Modal đọc được ngay
+        setCustomerOrders(myOrders);
         return myOrders;
       } else {
         setUserOrders([]);
@@ -191,10 +191,7 @@ export default function ShopPage() {
 
   // Hàm xử lý khi bấm nút Lịch Sử Đơn Hàng trên Header
   const handleOpenOrderHistory = async () => {
-    // 1. Gọi API lấy dữ liệu thực tế mới nhất từ MySQL CSDL
     const dbOrders = await fetchUserOrders();
-
-    // 2. Nếu MySQL chưa có dữ liệu, thử fallback đọc từ localStorage
     if (!dbOrders || dbOrders.length === 0) {
       try {
         const savedOrders = localStorage.getItem('orders');
@@ -207,7 +204,7 @@ export default function ShopPage() {
           const myLocalOrders = allOrders.filter((order) => {
             const orderCustomer = order.customer || order.email || order.username;
             return orderCustomer && userIdentifier && 
-                   (orderCustomer === userIdentifier || orderCustomer === currentUser.email?.split('@')[0]);
+                (orderCustomer === userIdentifier || orderCustomer === currentUser.email?.split('@')[0]);
           });
           setCustomerOrders(myLocalOrders);
         }
@@ -215,37 +212,66 @@ export default function ShopPage() {
         console.error('Lỗi đọc localStorage:', error);
       }
     }
-
-    // 3. Mở Modal hiển thị
     setShowOrderHistory(true);
   };
- // --- HÀM HỦY ĐƠN HÀNG (ĐỒNG BỘ MYSQL & LOCALSTORAGE) ---
+
+  // --- HÀM GỬI ĐÁNH GIÁ SẢN PHẨM ---
+const handleSendReview = async (e) => {
+  e.preventDefault();
+  
+  // Đảm bảo luôn lấy được user_id chuẩn hoặc ID mặc định
+  const savedUser = localStorage.getItem('user');
+  const currentUser = savedUser ? JSON.parse(savedUser) : null;
+  const currentUserId = currentUser?.id || currentUser?.user_id || 1; 
+
+  // Lấy product_id hợp lệ (nếu chưa có thì lấy mặc định 1)
+  const finalProductId = reviewProductId || 1;
+
+  try {
+    const res = await fetch('http://localhost:5000/api/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_id: Number(finalProductId),
+        user_id: Number(currentUserId),
+        rating: Number(reviewRating),
+        comment: reviewComment
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('🌟 Cảm ơn bạn đã đánh giá sản phẩm!');
+      setShowReviewModal(false);
+      setReviewComment('');
+      setReviewRating(5);
+    } else {
+      // Hiển thị chính xác thông báo lỗi từ Backend trả về
+      alert(`Gửi thất bại: ${data.message || 'Lỗi dữ liệu'}`);
+    }
+  } catch (err) {
+    console.error('Lỗi kết nối API đánh giá:', err);
+    alert('Không thể kết nối đến máy chủ Backend (Lỗi mạng)!');
+  }
+};
+  // --- HÀM HỦY ĐƠN HÀNG ---
   const handleCancelOrder = async (orderId) => {
     if (window.confirm(`Bạn có chắc chắn muốn hủy đơn hàng #${orderId}?`)) {
       try {
-        // 1. Gọi API gửi yêu cầu hủy đơn sang Backend MySQL
         const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
           method: 'PUT'
         });
         if (res.ok) {
-          // 2. Tải lại danh sách đơn hàng mới nhất từ MySQL CSDL
           if (typeof fetchUserOrders === 'function') {
             await fetchUserOrders();
           }
-          // 3. Cập nhật ngay state giao diện Modal của khách hàng
-         setCustomerOrders((prevOrders) =>
-          prevOrders.filter((order) => {
-            const currentId = order.id || order.order_code;
-            return currentId !== orderId;
-          })
+          setCustomerOrders((prevOrders) =>
+            prevOrders.filter((order) => {
+              const currentId = order.id || order.order_code;
+              return currentId !== orderId;
+            })
           );
-          // 4. Đồng bộ cập nhật cả vào localStorage (nếu có)
-          const savedOrders = JSON.parse(localStorage.getItem('orders')) || [];
-          const updatedOrders = savedOrders.map((order) => {
-            const currentId = order.id || order.order_code;
-            return currentId === orderId ? { ...order, status: 'Đã hủy' } : order;
-          });
-          localStorage.setItem('orders', JSON.stringify(updatedOrders));
           alert('Đã hủy đơn hàng thành công!');
         } else {
           alert('Hủy đơn hàng thất bại!');
@@ -256,55 +282,54 @@ export default function ShopPage() {
       }
     }
   };
-  // 3. Effect quản lý Thông báo
-  useEffect(() => {
-    const checkAndShowNotification = () => {
-      const savedNotice = localStorage.getItem('latest_notification');
-      if (savedNotice) {
-        try {
-          const parsedNotice = JSON.parse(savedNotice);
-          setNotification(parsedNotice.message);
 
-          setTimeout(() => {
-            setNotification(null);
-          }, 4000);
-        } catch (e) {
-          console.error("Lỗi parse notification:", e);
-        }
+ // 3. Effect quản lý Thông báo
+useEffect(() => {
+  const checkAndShowNotification = () => {
+    const savedNotice = localStorage.getItem('latest_notification');
+    if (savedNotice) {
+      try {
+        const parsedNotice = JSON.parse(savedNotice);
+        setNotification(parsedNotice.message);
+        localStorage.removeItem('latest_notification');
+
+        setTimeout(() => {
+          setNotification(null);
+        }, 4000);
+      } catch (e) {
+        console.error("Lỗi parse notification:", e);
       }
-    };
+    }
+  };
 
-    checkAndShowNotification();
+  checkAndShowNotification();
 
-    const handleCustomEvent = (e) => {
-      if (e.detail?.message) {
-        setNotification(e.detail.message);
-        setTimeout(() => setNotification(null), 4000);
-      } else {
-        checkAndShowNotification();
-      }
-    };
+  const handleCustomEvent = (e) => {
+    if (e.detail?.message) {
+      setNotification(e.detail.message);
+      setTimeout(() => setNotification(null), 4000);
+    } else {
+      checkAndShowNotification();
+    }
+  };
 
-    const handleStorageEvent = (e) => {
-      if (e.key === 'latest_notification') {
-        checkAndShowNotification();
-      }
-    };
+  const handleStorageEvent = (e) => {
+    if (e.key === 'latest_notification') {
+      checkAndShowNotification();
+    }
+  };
 
-    window.addEventListener('order_status_updated', handleCustomEvent);
-    window.addEventListener('storage', handleStorageEvent);
+  window.addEventListener('order_status_updated', handleCustomEvent);
+  window.addEventListener('storage', handleStorageEvent);
 
-    // cleanup function PHẢI NẰM TRONG useEffect
-    return () => {
-      window.removeEventListener('order_status_updated', handleCustomEvent);
-      window.removeEventListener('storage', handleStorageEvent);
-    };
-  }, []);
+  return () => {
+    window.removeEventListener('order_status_updated', handleCustomEvent);
+    window.removeEventListener('storage', handleStorageEvent);
+  };
+}, []);
 
-  // 4. Các state còn lại đặt tiếp bên dưới
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user')) || { email: 'Khách hàng' };
-
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -314,33 +339,28 @@ export default function ShopPage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [products, setProducts] = useState([]);
 
-  // Hàm tải danh sách sản phẩm thực tế từ MySQL
- const fetchProducts = async () => {
-  try {
-    const res = await fetch('http://localhost:5000/api/products');
-    const data = await res.json();
-    setProducts([...data].reverse()); 
-  } catch (err) {
-    console.error('Lỗi tải sản phẩm từ CSDL MySQL:', err);
-  }
-};
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/products');
+      const data = await res.json();
+      setProducts([...data].reverse()); 
+    } catch (err) {
+      console.error('Lỗi tải sản phẩm từ CSDL MySQL:', err);
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // Modal Đặt hàng (nhập thông tin) & Modal Hóa đơn
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState(null);
-
-  // Form thông tin người nhận
   const [shippingInfo, setShippingInfo] = useState({
     fullName: user.email ? user.email.split('@')[0] : '',
     phone: '',
     address: '',
     paymentMethod: 'COD'
   });
-
   const categories = ['Tất cả', 'Phím bấm', 'Apple', 'Samsung', 'Xiaomi', 'Khác'];
 
   const confirmLogout = () => {
@@ -359,42 +379,41 @@ export default function ShopPage() {
   };
 
   const handleAddToCart = (product, variantChosen) => {
-  const variant = variantChosen || (
-    product.variants && product.variants.length > 0 
-      ? product.variants[0] 
-      : { color: 'Tiêu chuẩn', image: product.image || '' }
-  );
-
-  const rawPrice = product.price ?? product.rawPrice ?? product.gia ?? 0;
-  const cleanPrice = typeof rawPrice === 'string'
-    ? Number(rawPrice.replace(/[^0-9]/g, ''))
-    : Number(rawPrice);
-
-  setCart((prevCart) => {
-    const existingItem = prevCart.find(
-      (item) => item.id === product.id && item.color === variant.color
+    const variant = variantChosen || (
+      product.variants && product.variants.length > 0 
+        ? product.variants[0] 
+        : { color: 'Tiêu chuẩn', image: product.image || '' }
     );
-
-    if (existingItem) {
-      return prevCart.map((item) =>
-        item.id === product.id && item.color === variant.color
-          ? { ...item, quantity: item.quantity + 1, price: cleanPrice }
-          : item
+    const rawPrice = product.price ?? product.rawPrice ?? product.gia ?? 0;
+    const cleanPrice = typeof rawPrice === 'string'
+      ? Number(rawPrice.replace(/[^0-9]/g, ''))
+      : Number(rawPrice);
+    
+    setCart((prevCart) => {
+      const existingItem = prevCart.find(
+        (item) => item.id === product.id && item.color === variant.color
       );
-    } else {
-      return [
-        ...prevCart,
-        {
-          ...product,
-          price: cleanPrice,
-          color: variant.color,
-          image: variant.image || product.image,
-          quantity: 1
-        }
-      ];
-    }
-  });
-};
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.id === product.id && item.color === variant.color
+            ? { ...item, quantity: item.quantity + 1, price: cleanPrice }
+            : item
+        );
+      } else {
+        return [
+          ...prevCart,
+          {
+            ...product,
+            price: cleanPrice,
+            color: variant.color,
+            image: variant.image || product.image,
+            quantity: 1
+          }
+        ];
+      }
+    });
+  };
+
   const updateQuantity = (id, color, delta) => {
     setCart((prevCart) =>
       prevCart
@@ -413,39 +432,27 @@ export default function ShopPage() {
     setCart((prevCart) => prevCart.filter((item) => !(item.id === id && item.color === color)));
   };
 
- const totalCartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const totalCartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const totalPrice = cart.reduce((sum, item) => {
+    const priceNum = typeof item.price === 'string'
+      ? Number(item.price.replace(/[^0-9]/g, ''))
+      : Number(item.price || item.rawPrice || 0);
+    return sum + priceNum * (item.quantity || 1);
+  }, 0);
 
-const totalPrice = cart.reduce((sum, item) => {
-  // Lọc lấy nguyên các chữ số (loại bỏ dấu chấm, chữ 'đ', khoảng trắng...)
-  const priceNum = typeof item.price === 'string'
-    ? Number(item.price.replace(/[^0-9]/g, ''))
-    : Number(item.price || item.rawPrice || 0);
-
-  return sum + priceNum * (item.quantity || 1);
-}, 0);
-
-  // Mở modal Đặt hàng khi bấm nút trong Giỏ hàng
   const handleOpenCheckout = () => {
     if (cart.length === 0) return;
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
   };
 
-  // Xác nhận Thanh toán từ Form thông tin
   const handleFinalPayment = async (e) => {
     e.preventDefault();
-
-    // 1. Chuẩn hóa giá trị số cho tổng tiền và từng sản phẩm (loại bỏ ký tự 'đ', '.', khoảng trắng)
-    const cleanTotalPrice = typeof totalPrice === 'number' 
-      ? totalPrice 
-      : Number(totalPrice.toString().replace(/[^0-9]/g, ''));
+    const cleanTotalPrice = typeof totalPrice === 'number' ? totalPrice : Number(totalPrice.toString().replace(/[^0-9]/g, ''));
 
     const formattedItems = cart.map(item => {
       const itemPrice = item.price || item.rawPrice || 0;
-      const cleanPrice = typeof itemPrice === 'number' 
-        ? itemPrice 
-        : Number(itemPrice.toString().replace(/[^0-9]/g, ''));
-
+      const cleanPrice = typeof itemPrice === 'number' ? itemPrice : Number(itemPrice.toString().replace(/[^0-9]/g, ''));
       return {
         product_id: item.id,
         quantity: item.quantity,
@@ -454,9 +461,8 @@ const totalPrice = cart.reduce((sum, item) => {
       };
     });
 
-    // 2. Tạo đối tượng dữ liệu chuẩn khớp với CSDL MySQL
     const newOrderData = {
-      user_id: user?.id || 1, // ID người dùng (nếu có)
+      user_id: user?.id || 1,
       recipient_name: shippingInfo.fullName || user.email || 'Khách hàng',
       customerName: shippingInfo.fullName || user.email || 'Khách hàng',
       email: user.email || 'khach@gmail.com',
@@ -473,11 +479,8 @@ const totalPrice = cart.reduce((sum, item) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrderData)
       });
-
       const data = await response.json();
-
       if (response.ok) {
-        // Tạo hóa đơn hiển thị thành công cho người dùng
         const newInvoice = {
           id: 'HD' + (data.orderId || Date.now().toString().slice(-6)),
           date: new Date().toLocaleString('vi-VN'),
@@ -488,13 +491,11 @@ const totalPrice = cart.reduce((sum, item) => {
           items: [...cart],
           totalAmount: cleanTotalPrice,
         };
-
         setCurrentInvoice(newInvoice);
         setCart([]);
         setIsCheckoutOpen(false);
-        fetchProducts();   // Cập nhật lại kho
+        fetchProducts(); 
         fetchUserOrders();
-
         alert('🎉 Đặt hàng thành công!');
       } else {
         alert(data.message || 'Đặt hàng thất bại!');
@@ -507,8 +508,7 @@ const totalPrice = cart.reduce((sum, item) => {
 
   const filteredProducts = products.filter((item) => {
     const keyword = searchTerm.toLowerCase();
-    const matchesSearch = item.name.toLowerCase().includes(keyword) || item.specs.toLowerCase().includes(keyword);
-    
+    const matchesSearch = item.name.toLowerCase().includes(keyword) || (item.specs && item.specs.toLowerCase().includes(keyword)); 
     if (selectedCategory === 'Tất cả') return matchesSearch;
     if (selectedCategory === 'Khác') return matchesSearch && !['Phím bấm', 'Apple', 'Samsung', 'Xiaomi'].includes(item.category);
     return matchesSearch && item.category === selectedCategory;
@@ -516,12 +516,18 @@ const totalPrice = cart.reduce((sum, item) => {
 
   return (
     <div className="shop-container">
+      {/* Thông báo nổi */}
+      {notification && (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', backgroundColor: '#059669', color: '#fff', padding: '12px 20px', borderRadius: '8px', zIndex: 1000, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+          🔔 {notification}
+        </div>
+      )}
+
       {/* Header */}
       <header className="shop-header">
         <div className="logo-section">
           <h2>📱 PHONE STORE</h2>
         </div>
-
         <div className="search-section">
           <input
             type="text"
@@ -530,28 +536,21 @@ const totalPrice = cart.reduce((sum, item) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
         <div className="user-section">
-        <div className="user-greeting">
-          <span className="greeting-text">Xin chào,</span>
-          <strong className="username">{user.email ? user.email.split('@')[0] : 'Khách'}</strong>
+          <div className="user-greeting">
+            <span className="greeting-text">Xin chào,</span>
+            <strong className="username">{user.email ? user.email.split('@')[0] : 'Khách'}</strong>
+          </div>
+          <button className="cart-btn" onClick={() => setIsCartOpen(!isCartOpen)}>
+            🛒 Giỏ hàng ({totalCartCount})
+          </button>
+          <button className="btn-order-history" onClick={handleOpenOrderHistory}>
+            📜 Lịch sử
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
+            🚪 Đăng xuất
+          </button>
         </div>
-        
-        {/* Nút Giỏ hàng */}
-        <button className="cart-btn" onClick={() => setIsCartOpen(!isCartOpen)}>
-          🛒 Giỏ hàng ({totalCartCount})
-        </button>
-
-        {/* 📜 NÚT LỊCH SỬ MUA HÀNG ĐẶT Ở ĐÂY */}
-        <button className="btn-order-history" onClick={handleOpenOrderHistory}>
-          📜 Lịch sử
-        </button>
-
-        {/* Nút Đăng xuất */}
-        <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
-          🚪 Đăng xuất
-        </button>
-      </div>
       </header>
 
       {/* Banner */}
@@ -574,85 +573,72 @@ const totalPrice = cart.reduce((sum, item) => {
       </div>
 
      {/* Grid sản phẩm */}
-<main className="shop-main">
-  <h3>
-    {searchTerm ? `Kết quả tìm kiếm cho "${searchTerm}" (${filteredProducts.length})` : `Danh Sách Sản Phẩm (${filteredProducts.length})`}
-  </h3>
+      <main className="shop-main">
+        <h3>
+          {searchTerm ? `Kết quả tìm kiếm cho "${searchTerm}" (${filteredProducts.length})` : `Danh Sách Sản Phẩm (${filteredProducts.length})`}
+        </h3>
+        {filteredProducts.length > 0 ? (
+          <div className="product-grid">
+            {filteredProducts.map((item) => {
+              const localProduct = PRODUCTS.find(p => 
+                p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+              );
+              const itemVariants = (item.variants && item.variants.length > 0) 
+                ? item.variants 
+                : (localProduct?.variants || []);
+              const defaultImg = 
+                item.image ||
+                (item.variants && item.variants.length > 0 && item.variants[0].image) ||
+                localProduct?.image ||
+                'https://via.placeholder.com/200';
+              const formattedPrice = item.price 
+                ? Number(item.price).toLocaleString('vi-VN') + 'đ' 
+                : (localProduct?.price || '0đ');
 
-  {filteredProducts.length > 0 ? (
-    <div className="product-grid">
-      {filteredProducts.map((item) => {
-        // 1. Khớp chính xác sản phẩm tĩnh theo TÊN (loại bỏ khoảng trắng và không phân biệt hoa thường)
-        const localProduct = PRODUCTS.find(p => 
-          p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
-        );
-
-        // 2. Lấy biến thể màu sắc từ DB hoặc file tĩnh
-        const itemVariants = (item.variants && item.variants.length > 0) 
-          ? item.variants 
-          : (localProduct?.variants || []);
-
-        // 3. Lấy ảnh chính xác theo thứ tự ưu tiên
-        const defaultImg = 
-          item.image ||
-          (item.variants && item.variants.length > 0 && item.variants[0].image) ||
-          localProduct?.image ||
-          (localProduct?.variants && localProduct.variants.length > 0 && localProduct.variants[0].image) ||
-          'https://via.placeholder.com/200';
-
-        // 4. Định dạng giá tiền chuẩn Việt Nam (VD: 650000 -> 650.000đ)
-        const formattedPrice = item.price 
-          ? Number(item.price).toLocaleString('vi-VN') + 'đ' 
-          : (localProduct?.price || '0đ');
-
-        return (
-          <div 
-            key={item.id} 
-            className="product-card" 
-            onClick={() => handleOpenModal({ 
-              ...localProduct, 
-              ...item, 
-              price: formattedPrice, 
-              variants: itemVariants 
+              return (
+                <div
+                  key={item.id}
+                  className="product-card"
+                  onClick={() => handleOpenModal({
+                    ...localProduct,
+                    ...item,
+                    price: formattedPrice,
+                    variants: itemVariants
+                  })}
+                >
+                  {item.badge === 'hot' && (
+                    <span className="product-badge hot">🔥 HOT</span>
+                  )}
+                  {item.badge === 'new' && (
+                    <span className="product-badge new">✨ MỚI</span>
+                  )}
+                  <img src={defaultImg} alt={item.name} onError={(e) => { e.target.src = 'https://via.placeholder.com/200'; }} />
+                  <h4>{item.name}</h4>
+                  <p className="price">{formattedPrice}</p>
+                  {itemVariants.length > 0 && (
+                    <span className="color-count-tag">{itemVariants.length} màu sắc</span>
+                  )}
+                  <button 
+                    className="add-cart-btn" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart({ ...item, price: formattedPrice });
+                    }}
+                  >
+                    + Thêm Vào Giỏ
+                  </button>
+                </div>
+              );
             })}
-          >
-            <img 
-              src={defaultImg} 
-              alt={item.name} 
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://via.placeholder.com/200';
-              }}
-            />
-            
-            <h4>{item.name}</h4>
-            <p className="price">{formattedPrice}</p>
-            
-            {itemVariants.length > 0 && (
-              <span className="color-count-tag">{itemVariants.length} màu sắc</span>
-            )}
-
-            <button 
-              className="add-cart-btn" 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart({ ...item, price: formattedPrice });
-              }}
-            >
-              + Thêm Vào Giỏ
-            </button>
           </div>
-        );
-      })}
-    </div>
-  ) : (
-    <p style={{ textAlign: 'center', marginTop: '30px', color: '#64748b' }}>
-      Không tìm thấy sản phẩm nào phù hợp.
-    </p>
-  )}
-</main>
+        ) : (
+          <p style={{ textAlign: 'center', marginTop: '30px', color: '#64748b' }}>
+            Không tìm thấy sản phẩm nào phù hợp.
+          </p>
+        )}
+      </main>
 
-      {/* Modal Chi Tiết Sản Phẩm & Chọn Màu */}
+      {/* Modal Chi Tiết Sản Phẩm */}
       {selectedProduct && selectedVariant && (
         <div className="modal-overlay" onClick={() => setSelectedProduct(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -661,12 +647,10 @@ const totalPrice = cart.reduce((sum, item) => {
               <div className="modal-img-container">
                 <img src={selectedVariant.image} alt={selectedVariant.color} className="modal-img" />
               </div>
-
               <div className="modal-info">
                 <span className="badge">{selectedProduct.category}</span>
                 <h2>{selectedProduct.name}</h2>
                 <p className="modal-price">{selectedProduct.price}</p>
-
                 {selectedProduct.variants && selectedProduct.variants.length > 0 && (
                   <div className="color-selector">
                     <h4>Màu sắc đã chọn: <strong>{selectedVariant.color}</strong></h4>
@@ -683,12 +667,10 @@ const totalPrice = cart.reduce((sum, item) => {
                     </div>
                   </div>
                 )}
-
                 <div className="specs-box">
                   <h4>Thông số kỹ thuật:</h4>
                   <p>{selectedProduct.specs}</p>
                 </div>
-
                 <div className="modal-actions">
                   <button 
                     className="buy-now-btn" 
@@ -705,139 +687,123 @@ const totalPrice = cart.reduce((sum, item) => {
           </div>
         </div>
       )}
-    {/* GIỎ HÀNG MINI */}
-{isCartOpen && (
-  <div className="mini-cart-overlay" onClick={() => setIsCartOpen(false)}>
-    <div className="mini-cart-box" onClick={(e) => e.stopPropagation()}>
-      <div className="mini-cart-header">
-        <h4>🛒 Giỏ hàng của bạn ({totalCartCount})</h4>
-        <button className="mini-close-btn" onClick={() => setIsCartOpen(false)}>✕</button>
-      </div>
 
-      {cart.length === 0 ? (
-        <p className="mini-empty-text">Chưa có sản phẩm nào trong giỏ.</p>
-      ) : (
-        <>
-          <div className="mini-cart-list">
-            {cart.map((item) => {
-              const priceNumber = typeof item.price === 'string'
-                ? Number(item.price.replace(/[^0-9]/g, ''))
-                : Number(item.price || 0);
-
-              return (
-                <div key={`${item.id}-${item.color}`} className="mini-cart-item">
-                  <img src={item.image} alt={item.name} className="mini-item-img" />
-                  <div className="mini-item-details">
-                    <span className="mini-item-name">{item.name}</span>
-                    <span className="mini-item-color">Màu: {item.color}</span>
-                    <span className="mini-item-price">
-                      {priceNumber.toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
-                  <div className="mini-item-qty">
-                    <button onClick={() => updateQuantity(item.id, item.color, -1)}>-</button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.color, 1)}>+</button>
-                  </div>
-                  <button className="mini-remove-btn" onClick={() => removeFromCart(item.id, item.color)}>✕</button>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mini-cart-footer">
-            <div className="mini-total-line">
-              <span>Tổng tiền:</span>
-              <strong>
-                {(Number(totalPrice) || 0).toLocaleString('vi-VN')}đ
-              </strong>
+      {/* GIỎ HÀNG MINI */}
+      {isCartOpen && (
+        <div className="mini-cart-overlay" onClick={() => setIsCartOpen(false)}>
+          <div className="mini-cart-box" onClick={(e) => e.stopPropagation()}>
+            <div className="mini-cart-header">
+              <h4>🛒 Giỏ hàng của bạn ({totalCartCount})</h4>
+              <button className="mini-close-btn" onClick={() => setIsCartOpen(false)}>✕</button>
             </div>
-            <button className="mini-checkout-btn" onClick={handleOpenCheckout}>
-              Đặt hàng
-            </button>
+            {cart.length === 0 ? (
+              <p className="mini-empty-text">Chưa có sản phẩm nào trong giỏ.</p>
+            ) : (
+              <>
+                <div className="mini-cart-list">
+                  {cart.map((item) => {
+                    const priceNumber = typeof item.price === 'string'
+                      ? Number(item.price.replace(/[^0-9]/g, ''))
+                      : Number(item.price || 0);
+                    return (
+                      <div key={`${item.id}-${item.color}`} className="mini-cart-item">
+                        <img src={item.image} alt={item.name} className="mini-item-img" />
+                        <div className="mini-item-details">
+                          <span className="mini-item-name">{item.name}</span>
+                          <span className="mini-item-color">Màu: {item.color}</span>
+                          <span className="mini-item-price">{priceNumber.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div className="mini-item-qty">
+                          <button onClick={() => updateQuantity(item.id, item.color, -1)}>-</button>
+                          <span>{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, item.color, 1)}>+</button>
+                        </div>
+                        <button className="mini-remove-btn" onClick={() => removeFromCart(item.id, item.color)}>✕</button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mini-cart-footer">
+                  <div className="mini-total-line">
+                    <span>Tổng tiền:</span>
+                    <strong>{(Number(totalPrice) || 0).toLocaleString('vi-VN')}đ</strong>
+                  </div>
+                  <button className="mini-checkout-btn" onClick={handleOpenCheckout}>
+                    Đặt hàng
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        </>
+        </div>
       )}
-    </div>
-  </div>
-)}
-      {/* MODAL BẢNG NHẬP THÔNG TIN ĐẶT HÀNG & XÁC NHẬN TIỀN */}
+
+      {/* MODAL ĐẶT HÀNG */}
       {isCheckoutOpen && (
         <div className="modal-overlay" onClick={() => setIsCheckoutOpen(false)}>
           <div className="checkout-modal-box" onClick={(e) => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setIsCheckoutOpen(false)}>✕</button>
             <h2>📝 THÔNG TIN ĐẶT HÀNG</h2>
-
             <div className="checkout-summary">
               <h4>Tổng số lượng: <span>{totalCartCount} sản phẩm</span></h4>
               <h3>Tổng thanh toán: <strong>{totalPrice.toLocaleString('vi-VN')}đ</strong></h3>
             </div>
-
             <form onSubmit={handleFinalPayment} className="checkout-form">
               <div className="form-group">
                 <label>Họ và tên người nhận:</label>
-                <input 
-                  type="text" 
-                  required 
+                <input
+                  type="text"
+                  required
                   placeholder="Nhập họ và tên"
                   value={shippingInfo.fullName}
                   onChange={(e) => setShippingInfo({ ...shippingInfo, fullName: e.target.value })}
                 />
               </div>
-
               <div className="form-group">
-              <label>Số điện thoại:</label>
-              <input 
-                type="tel" 
-                required 
-                placeholder="Nhập số điện thoại liên hệ"
-                value={shippingInfo.phone}
-                maxLength={11}
-                onChange={(e) => {
-                const onlyNums = e.target.value.replace(/\D/g, '');
-                setShippingInfo({ ...shippingInfo, phone: onlyNums });
-                }}
-              />
-            </div>
-
+                <label>Số điện thoại:</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="Nhập số điện thoại liên hệ"
+                  value={shippingInfo.phone}
+                  maxLength={11}
+                  onChange={(e) => {
+                    const onlyNums = e.target.value.replace(/\D/g, '');
+                    setShippingInfo({ ...shippingInfo, phone: onlyNums });
+                  }}
+                />
+              </div>
               <div className="form-group">
                 <label>Địa chỉ nhận hàng:</label>
-                <textarea 
-                  required 
+                <textarea
+                  required
                   rows="2"
                   placeholder="Nhập địa chỉ giao hàng chi tiết"
                   value={shippingInfo.address}
                   onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
                 />
               </div>
-              <button type="submit" className="payment-btn">
-                Thanh toán
-              </button>
+              <button type="submit" className="payment-btn">Thanh toán</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL HÓA ĐƠN XÁC NHẬN */}
+      {/* MODAL HÓA ĐƠN */}
       {currentInvoice && (
         <div className="modal-overlay" onClick={() => setCurrentInvoice(null)}>
           <div className="invoice-modal-box" onClick={(e) => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setCurrentInvoice(null)}>✕</button>
-            
             <div className="invoice-header">
               <h2>HÓA ĐƠN BÁN HÀNG</h2>
               <p className="invoice-id">Mã đơn: <strong>#{currentInvoice.id}</strong></p>
               <p className="invoice-date">Ngày tạo: {currentInvoice.date}</p>
             </div>
-
             <div className="invoice-user-info">
               <p><strong>Khách hàng:</strong> {currentInvoice.customer}</p>
               <p><strong>SĐT:</strong> {currentInvoice.phone}</p>
               <p><strong>Địa chỉ:</strong> {currentInvoice.address}</p>
-              <p><strong>Hình thức:</strong> {currentInvoice.paymentMethod}</p>
-              <p><strong>Trạng thái:</strong> <span className="status-paid">Đã tạo đơn thành công</span></p>
             </div>
-
             <table className="invoice-table">
               <thead>
                 <tr>
@@ -858,20 +824,132 @@ const totalPrice = cart.reduce((sum, item) => {
                 ))}
               </tbody>
             </table>
-
             <div className="invoice-total">
               <span>Tổng cộng:</span>
               <strong>{currentInvoice.totalAmount.toLocaleString('vi-VN')}đ</strong>
             </div>
-
             <div className="invoice-actions">
-              <button className="print-btn" onClick={() => window.print()}>
-                🖨️ In / Lưu Hóa Đơn
-              </button>
-              <button className="done-btn" onClick={() => setCurrentInvoice(null)}>
-                Hoàn tất
-              </button>
+              <button className="print-btn" onClick={() => window.print()}>🖨️ In Hóa Đơn</button>
+              <button className="done-btn" onClick={() => setCurrentInvoice(null)}>Hoàn tất</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* 📜 MODAL LỊCH SỬ MUA HÀNG & NÚT ĐÁNH GIÁ */}
+      {showOrderHistory && (
+        <div className="modal-overlay" onClick={() => setShowOrderHistory(false)}>
+          <div className="history-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="history-modal-header">
+              <h3>📜 Lịch Sử Đơn Hàng Của Bạn</h3>
+              <button className="close-btn" onClick={() => setShowOrderHistory(false)}>✕</button>
+            </div>
+            <div className="history-modal-body">
+              {customerOrders.length > 0 ? (
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Mã Đơn</th>
+                      <th>Tổng Tiền</th>
+                      <th>Trạng Thái</th>
+                      <th style={{ textAlign: 'center' }}>Thao Tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customerOrders.map((order) => (
+                      <tr key={order.id || order.order_code}>
+                        <td>
+                          <strong>
+                            {(() => {
+                              const rawId = order.id || order.order_code || 1;
+                              return `DH${String(rawId).padStart(5, '0')}`;
+                            })()}
+                          </strong>
+                        </td>
+                        <td style={{ color: '#059669', fontWeight: '600' }}>
+                          {(() => {
+                            const amount = order.totalAmount || order.totalPrice || order.total || order.total_amount || 0;
+                            const num = Number(amount.toString().replace(/[^0-9.]/g, ''));
+                            return !isNaN(num) && num > 0 ? num.toLocaleString('vi-VN') + 'đ' : '0đ';
+                          })()}
+                        </td>
+                        <td>
+                          <span className={`status-badge ${order.status === 'Đã giao' ? 'delivered' : order.status === 'Đã hủy' ? 'cancelled' : 'pending'}`}>
+                            {order.status === 'Đã giao' && '✅ Đã giao'}
+                            {order.status === 'Đã hủy' && '❌ Đã hủy'}
+                            {order.status !== 'Đã giao' && order.status !== 'Đã hủy' && '⏳ Đang xử lý'}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {order.status === 'Đã giao' ? (
+                            <button 
+                              className="btn-review-order"
+                              style={{ padding: '6px 12px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+                              onClick={() => {
+                                const prodId = order.product_id || (order.items && order.items[0]?.product_id) || 1;
+                                setReviewProductId(prodId);
+                                setShowReviewModal(true);
+                              }}
+                            >
+                              ⭐ Đánh giá
+                            </button>
+                          ) : order.status !== 'Đã hủy' ? (
+                            <button 
+                              className="btn-cancel-order" 
+                              onClick={() => handleCancelOrder(order.id || order.order_code)}
+                            >
+                              Hủy đơn
+                            </button>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="no-orders-text">Bạn chưa có đơn hàng nào.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ⭐ MODAL GỬI ĐÁNH GIÁ (1-5 SAO) */}
+      {showReviewModal && (
+        <div className="modal-overlay" onClick={() => setShowReviewModal(false)}>
+          <div className="checkout-modal-box" onClick={(e) => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setShowReviewModal(false)}>✕</button>
+            <h2>⭐ Đánh Giá Sản Phẩm</h2>
+            <form onSubmit={handleSendReview} className="checkout-form">
+              <div className="form-group">
+                <label>Chọn số sao:</label>
+                <select 
+                  value={reviewRating} 
+                  onChange={(e) => setReviewRating(e.target.value)}
+                  style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', width: '100%', fontSize: '1rem' }}
+                >
+                  <option value="5">⭐⭐⭐⭐⭐ (5/5 Sao - Tuyệt vời)</option>
+                  <option value="4">⭐⭐⭐⭐ (4/5 Sao - Tốt)</option>
+                  <option value="3">⭐⭐⭐ (3/5 Sao - Bình thường)</option>
+                  <option value="2">⭐⭐ (2/5 Sao - Tạm được)</option>
+                  <option value="1">⭐ (1/5 Sao - Tệ)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Nhận xét của bạn:</label>
+                <textarea
+                  rows="3"
+                  placeholder="Hãy chia sẻ cảm nhận của bạn về sản phẩm này nhé..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', width: '100%' }}
+                />
+              </div>
+              <button type="submit" className="payment-btn" style={{ backgroundColor: '#059669', color: '#fff', padding: '10px', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                Gửi Đánh Giá
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -880,97 +958,19 @@ const totalPrice = cart.reduce((sum, item) => {
       {showLogoutConfirm && (
         <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
           <div className="confirm-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon"></div>
             <h3>Xác nhận đăng xuất</h3>
             <p>Bạn có chắc chắn muốn đăng xuất không?</p>
             <div className="confirm-actions">
-              <button className="confirm-btn-yes" onClick={confirmLogout}>
-                Có, đăng xuất
-              </button>
-              <button className="confirm-btn-no" onClick={() => setShowLogoutConfirm(false)}>
-                Không
-              </button>
+              <button className="confirm-btn-yes" onClick={confirmLogout}>Có, đăng xuất</button>
+              <button className="confirm-btn-no" onClick={() => setShowLogoutConfirm(false)}>Không</button>
             </div>
           </div>
         </div>
       )}
-      {/* 📜 MODAL LỊCH SỬ MUA HÀNG */}
-      {showOrderHistory && (
-      <div className="modal-overlay" onClick={() => setShowOrderHistory(false)}>
-        <div className="history-modal-box" onClick={(e) => e.stopPropagation()}>
-          <div className="history-modal-header">
-            <h3>📜 Lịch Sử Đơn Hàng Của Bạn</h3>
-            <button className="close-btn" onClick={() => setShowOrderHistory(false)}>✕</button>
-          </div>
 
-          <div className="history-modal-body">
-            {customerOrders.length > 0 ? (
-              <table className="history-table">
-                <thead>
-                  <tr>
-                    <th>Mã Đơn</th>
-                    <th>Tổng Tiền</th>
-                    <th>Trạng Thái</th>
-                    <th style={{ textAlign: 'center' }}>Thao Tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {customerOrders.map((order) => (
-                    <tr key={order.id || order.order_code}>
-                      <td><strong>{order.id || order.order_code}</strong></td>
-                      <td style={{ color: '#059669', fontWeight: '600' }}>
-                        {(() => {
-                          const amount = order.totalAmount || order.totalPrice || order.total || order.total_amount || 0;
-                          // Ép kiểu chuỗi số từ MySQL về Number để định dạng thành 1.290.000đ
-                          const num = Number(amount.toString().replace(/[^0-9.]/g, ''));
-                          return !isNaN(num) && num > 0 
-                            ? num.toLocaleString('vi-VN') + 'đ' 
-                            : '0đ';
-                        })()}
-                      </td>
-                      <td>
-                        <span className={`status-badge ${
-                          order.status === 'Đã giao' ? 'delivered' : order.status === 'Đã hủy' ? 'cancelled' : 'pending'
-                        }`}>
-                          {order.status === 'Đã giao' && '✅ Đã giao'}
-                          {order.status === 'Đã hủy' && '❌ Đã hủy'}
-                          {order.status !== 'Đã giao' && order.status !== 'Đã hủy' && '⏳ Đang xử lý'}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {/* CHỈ GIỮ 1 CỘT THAO TÁC NÀY */}
-                        {order.status !== 'Đã giao' && order.status !== 'Đã hủy' ? (
-                          <button 
-                            className="btn-cancel-order" 
-                            onClick={() => handleCancelOrder(order.id || order.order_code)}
-                          >
-                            Hủy đơn
-                          </button>
-                        ) : (
-                          <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="no-orders-text">Bạn chưa có đơn hàng nào.</p>
-            )}
-          </div>
-        </div>
+      <div className="shop-page">
+        <Footer />
       </div>
-)}
-
-    <div className="shop-page">
-      {/* 1. Header & Navigation */}
-      {/* 2. Banner quảng cáo */}
-      {/* 3. Danh sách sản phẩm */}
-
-      {/* 4. Footer chân trang */}
-      <Footer />
-    </div>
     </div>
   );
 }
-

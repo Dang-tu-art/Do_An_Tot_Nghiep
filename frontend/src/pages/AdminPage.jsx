@@ -623,11 +623,12 @@ const handleImageChange = (e) => {
         {/* TABLES CONTAINER */}
         <div className="table-wrapper">
          {/* 2. QUẢN LÝ ĐƠN HÀNG */}
+            {/* 1. QUẢN LÝ ĐƠN HÀNG */}
           {activeTab === 'orders' && (
             <table className="employee-table">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>Mã Đơn</th>
                   <th>Khách Hàng</th>
                   <th>SĐT</th>
                   <th>Tổng Tiền</th>
@@ -637,9 +638,17 @@ const handleImageChange = (e) => {
               </thead>
               <tbody>
                 {orders.length > 0 ? (
-                  orders.map((order, index) => ( 
+                  orders.map((order, index) => (
                     <tr key={order.id}>
-                      <td><strong className="text-blue">{index + 1}</strong></td>
+                      <td>
+                        <strong>
+                          {(() => {
+                            const rawId = order.id || order.order_code || 1;
+                            return `DH${String(rawId).padStart(5, '0')}`;
+                          })()}
+                        </strong>
+                      </td>
+                      <td>{order.customer}</td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
                         {Number(order.totalAmount || order.totalPrice || order.total || 0).toLocaleString('vi-VN')}đ
@@ -654,14 +663,14 @@ const handleImageChange = (e) => {
                           {order.status !== 'Đã giao' && (
                             <button
                               className="action-btn btn-success"
-                              onClick={() => handleStatusChange(order.id, 'Đã giao')} 
+                              onClick={() => handleStatusChange(order.id, 'Đã giao')}
                             >
                               Xác nhận giao
                             </button>
                           )}
                           <button
                             className="action-btn btn-danger"
-                            onClick={() => handleDeleteOrder(order.id)} 
+                            onClick={() => handleDeleteOrder(order.id)}
                           >
                             Xóa
                           </button>
