@@ -553,10 +553,30 @@ useEffect(() => {
         </div>
       </header>
 
-      {/* Banner */}
+      {/* Banner Chuyên Nghiệp */}
       <section className="shop-banner">
-        <h1>Thế Giới Điện Thoại Từ Cổ Điển Đến Hiện Đại</h1>
-        <p>Chọn sắc màu ưa thích - Đa dạng sản phẩm chính hãng!</p>
+        <div className="banner-content">
+          <h1>Thế Giới Điện Thoại<br/>Từ Cổ Điển Đến Hiện Đại</h1>
+          <p>Chọn sắc màu ưa thích - Đa dạng sản phẩm chính hãng!</p>
+        </div>
+        <div className="banner-images">
+          {/* Dùng trực tiếp ảnh từ Unsplash/Pexels để hiển thị 3 chiếc điện thoại cực xịn */}
+          <img 
+            src="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400&q=80" 
+            alt="Nokia Vintage" 
+            className="img-vintage" 
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80" 
+            alt="Feature Phone" 
+            className="img-feature" 
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&q=80" 
+            alt="iPhone Modern" 
+            className="img-modern" 
+          />
+        </div>
       </section>
 
       {/* Thanh lọc danh mục */}
