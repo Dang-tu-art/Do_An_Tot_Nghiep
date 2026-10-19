@@ -86,7 +86,7 @@ router.delete('/products/:id', async (req, res) => {
 router.get('/orders', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT o.id, u.full_name AS customer, u.phone, u.email, o.total_amount AS totalAmount, o.status, o.created_at
+      SELECT o.id, u.full_name AS customer, u.phone, u.email, o.total_amount AS totalAmount, o.status, o.created_at, o.is_reviewed
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
       ORDER BY o.created_at DESC

@@ -155,6 +155,7 @@ export default function ShopPage() {
   const [reviewProductId, setReviewProductId] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   // Hàm tải danh sách đơn hàng thực tế từ Backend MySQL
   const fetchUserOrders = async () => {
@@ -235,7 +236,8 @@ const handleSendReview = async (e) => {
         product_id: Number(finalProductId),
         user_id: Number(currentUserId),
         rating: Number(reviewRating),
-        comment: reviewComment
+        comment: reviewComment,
+        order_id: selectedOrderId // 🟢 Bổ sung order_id vào đây để Backend biết đơn hàng nào cần cập nhật!
       })
     });
 
@@ -246,6 +248,11 @@ const handleSendReview = async (e) => {
       setShowReviewModal(false);
       setReviewComment('');
       setReviewRating(5);
+      
+      // 🟢 Gọi lại hàm lấy danh sách đơn hàng để cập nhật ngay giao diện (biến thành "Đã đánh giá")
+      if (typeof fetchCustomerOrders === 'function') {
+        fetchCustomerOrders();
+      }
     } else {
       // Hiển thị chính xác thông báo lỗi từ Backend trả về
       alert(`Gửi thất bại: ${data.message || 'Lỗi dữ liệu'}`);
@@ -899,30 +906,38 @@ useEffect(() => {
                             {order.status !== 'Đã giao' && order.status !== 'Đã hủy' && '⏳ Đang xử lý'}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
-                          {order.status === 'Đã giao' ? (
-                            <button 
-                              className="btn-review-order"
-                              style={{ padding: '6px 12px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
-                              onClick={() => {
-                                const prodId = order.product_id || (order.items && order.items[0]?.product_id) || 1;
-                                setReviewProductId(prodId);
-                                setShowReviewModal(true);
-                              }}
-                            >
-                              ⭐ Đánh giá
-                            </button>
-                          ) : order.status !== 'Đã hủy' ? (
-                            <button 
-                              className="btn-cancel-order" 
-                              onClick={() => handleCancelOrder(order.id || order.order_code)}
-                            >
-                              Hủy đơn
-                            </button>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
-                          )}
-                        </td>
+                       <td style={{ textAlign: 'center' }}>
+  {order.status === 'Đã giao' ? (
+    // 🟢 Kiểm tra nếu đã đánh giá thì hiện chữ mờ, chưa thì hiện nút đánh giá
+    order.is_reviewed === 1 || order.is_reviewed === true ? (
+      <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', padding: '6px 10px', borderRadius: '4px' }}>
+        ✓ Đã đánh giá
+      </span>
+    ) : (
+      <button 
+        className="btn-review-order"
+        style={{ padding: '6px 12px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+        onClick={() => {
+          setSelectedOrderId(order.id);
+          const prodId = order.product_id || (order.items && order.items[0]?.product_id) || 1;
+          setReviewProductId(prodId);
+          setShowReviewModal(true);
+        }}
+      >
+        ⭐ Đánh giá
+      </button>
+    )
+  ) : order.status !== 'Đã hủy' ? (
+    <button 
+      className="btn-cancel-order" 
+      onClick={() => handleCancelOrder(order.id || order.order_code)}
+    >
+      Hủy đơn
+    </button>
+  ) : (
+    <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
+  )}
+</td>
                       </tr>
                     ))}
                   </tbody>
