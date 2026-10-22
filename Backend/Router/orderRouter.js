@@ -82,13 +82,25 @@ router.delete('/products/:id', async (req, res) => {
 // 2. QUẢN LÝ ĐƠN HÀNG (ORDERS)
 // ==========================================
 
-// 2.1 API Lấy danh sách đơn hàng
+// 2.1 API Lấy danh sách đơn hàng kèm tên sản phẩm
 router.get('/orders', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT o.id, u.full_name AS customer, u.phone, u.email, o.total_amount AS totalAmount, o.status, o.created_at, o.is_reviewed
+      SELECT 
+        o.id, 
+        u.full_name AS customer, 
+        u.phone, 
+        u.email, 
+        o.total_amount AS totalAmount, 
+        o.status, 
+        o.created_at, 
+        o.is_reviewed,
+        GROUP_CONCAT(p.name SEPARATOR ', ') AS product_names
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN products p ON oi.product_id = p.id
+      GROUP BY o.id
       ORDER BY o.created_at DESC
     `);
     res.json(rows);

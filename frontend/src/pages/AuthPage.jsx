@@ -42,22 +42,20 @@ export default function AuthPage() {
         localStorage.setItem('user', JSON.stringify(userObj));
 
         setMessage({ text: '✅ Đăng nhập thành công! Đang chuyển hướng...', type: 'success' });
-
-        // 🔄 TỰ ĐỘNG ĐIỀU HƯỚNG THEO VAI TRÒ TÀI KHOẢN
-       setTimeout(() => {
+      setTimeout(() => {
         const userRole = userObj?.role?.toUpperCase();
         
         if (userRole === 'ADMIN') {
-          navigate('/admin');     // ✅ Quản lý vào trang Admin
+          navigate('/admin');
         } else if (userRole === 'STAFF' || userRole === 'EMPLOYEE') {
-          navigate('/employee');  // Nhân viên vào trang Nhân viên
+          navigate('/employee');
         } else {
-          navigate('/shop');      // Khách hàng vào trang Cửa hàng
+          navigate('/shop');
         }
       }, 1200);
 
       } else {
-        setMessage({ text: '✅ Đăng ký thành công! Hãy chuyển sang Đăng nhập.', type: 'success' });
+        setMessage({ text: ' Đăng ký thành công! Hãy chuyển sang Đăng nhập.', type: 'success' });
         setTimeout(() => {
           setIsLogin(true);
           setMessage({ text: '', type: '' });
@@ -65,7 +63,7 @@ export default function AuthPage() {
       }
     } catch (err) {
       setMessage({
-        text: `❌ ${err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!'}`,
+        text: ` ${err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!'}`,
         type: 'error'
       });
     } finally {

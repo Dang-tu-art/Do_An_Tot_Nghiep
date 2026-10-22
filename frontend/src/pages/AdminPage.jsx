@@ -619,17 +619,16 @@ const handleImageChange = (e) => {
             </form>
           </div>
         )}
-
         {/* TABLES CONTAINER */}
         <div className="table-wrapper">
-         {/* 2. QUẢN LÝ ĐƠN HÀNG */}
-            {/* 1. QUẢN LÝ ĐƠN HÀNG */}
+         {/* 1. QUẢN LÝ ĐƠN HÀNG */}
           {activeTab === 'orders' && (
             <table className="employee-table">
               <thead>
                 <tr>
                   <th>Mã Đơn</th>
                   <th>Khách Hàng</th>
+                  <th>Sản phẩm</th>
                   <th>SĐT</th>
                   <th>Tổng Tiền</th>
                   <th>Trạng Thái</th>
@@ -649,6 +648,9 @@ const handleImageChange = (e) => {
                         </strong>
                       </td>
                       <td>{order.customer}</td>
+                      <td style={{ fontWeight: '500', color: '#1e293b' }}>
+                        {order.product_names || 'Sản phẩm điện thoại'}
+                      </td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
                         {Number(order.totalAmount || order.totalPrice || order.total || 0).toLocaleString('vi-VN')}đ

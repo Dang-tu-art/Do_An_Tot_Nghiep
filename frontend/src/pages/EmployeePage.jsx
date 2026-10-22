@@ -5,23 +5,17 @@ const EmployeePage = () => {
   const [activeTab, setActiveTab] = useState('orders');
   // State quản lý việc đóng/mở Modal đăng xuất
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  
   // 1. Quản lý Đơn hàng & Sản phẩm (Kết nối MySQL)
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  
   const [searchTerm, setSearchTerm] = useState('');
-
   // 3. Quản lý Khách hàng
   const [customers, setCustomers] = useState([]);
-  
-  // 🟢 THÊM STATE VÀ BIẾN LỌC TÌM KIẾM KHÁCH HÀNG Ở ĐÂY
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const filteredCustomers = Array.isArray(customers) ? customers.filter((cust) =>
     cust.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
     cust.phone.includes(customerSearchTerm)
   ) : [];
-
   // Hàm tải dữ liệu thực tế từ MySQL Database qua Backend
   const loadDashboardData = async () => {
     try {
@@ -35,7 +29,6 @@ const EmployeePage = () => {
         console.error('Dữ liệu sản phẩm trả về không phải mảng:', dataProducts);
         setProducts([]);
       }
-
       // Tải danh sách đơn hàng
       const resOrders = await fetch('http://localhost:5000/api/orders');
       const dataOrders = await resOrders.json();
@@ -52,23 +45,19 @@ const EmployeePage = () => {
       setOrders([]);
     }
   };
-
   // Tự động tải dữ liệu khi trang vừa mở
   useEffect(() => {
     loadDashboardData();
   }, []);
-
   // Lưu vào localStorage mỗi khi có thay đổi sản phẩm
   useEffect(() => {
     if (Array.isArray(products) && products.length > 0) {
       localStorage.setItem('app_products', JSON.stringify(products));
     }
   }, [products]);
-
   const filteredProducts = Array.isArray(products) ? products.filter((prod) =>
     prod.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
-
   useEffect(() => {
     const customerMap = {};
     if (Array.isArray(orders)) {
@@ -89,11 +78,9 @@ const EmployeePage = () => {
     }
     setCustomers(Object.values(customerMap));
   }, [orders]);
-
   // --- HÀM THAO TÁC ĐƠN HÀNG ---
   const handleStatusChange = async (orderId, newStatus) => {
     if (!Array.isArray(orders)) return;
-
     try {
       const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
         method: 'PUT',
@@ -102,14 +89,12 @@ const EmployeePage = () => {
         },
         body: JSON.stringify({ status: newStatus }),
       });
-
       if (res.ok) {
         const updatedOrders = orders.map((order) =>
           order.id === orderId ? { ...order, status: newStatus } : order
         );
         setOrders(updatedOrders);
         localStorage.setItem('orders', JSON.stringify(updatedOrders));
-
         if (newStatus === 'Đã giao') {
           const noticeObj = {
             id: Date.now(),
@@ -117,16 +102,13 @@ const EmployeePage = () => {
             message: `Đơn hàng #${orderId} của bạn đã được giao thành công!`,
             time: new Date().toLocaleTimeString('vi-VN')
           };
-
           localStorage.setItem('latest_notification', JSON.stringify(noticeObj));
-
           window.dispatchEvent(
             new CustomEvent('order_status_updated', {
               detail: noticeObj
             })
           );
         }
-
         alert(`Đã cập nhật đơn hàng #${orderId} sang trạng thái "${newStatus}"!`);
       } else {
         alert('Cập nhật trạng thái vào CSDL thất bại!');
@@ -136,14 +118,12 @@ const EmployeePage = () => {
       alert('Không thể kết nối đến máy chủ Backend!');
     }
   };
-
   const handleDeleteOrder = async (orderId) => {
     if (window.confirm(`Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${orderId} khỏi CSDL?`)) {
       try {
         const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
           method: 'DELETE'
         });
-
         if (res.ok) {
           if (Array.isArray(orders)) {
             const updatedOrders = orders.filter((order) => order.id !== orderId);
@@ -161,7 +141,6 @@ const EmployeePage = () => {
       }
     }
   };
-
   // --- HÀM THAO TÁC SẢN PHẨM ---
   const handleDeleteProduct = (productId, productName) => {
     if (window.confirm(`Bạn có chắc muốn xóa sản phẩm "${productName}"?`)) {
@@ -169,7 +148,6 @@ const EmployeePage = () => {
       setProducts(products.filter((prod) => prod.id !== productId));
     }
   };
-
   // --- HÀM THAO TÁC KHÁCH HÀNG ---
   const handleDeleteCustomer = (customerId, customerName) => {
     if (window.confirm(`Bạn có chắc muốn xóa khách hàng "${customerName}"?`)) {
@@ -177,20 +155,17 @@ const EmployeePage = () => {
       setCustomers(customers.filter((cust) => cust.id !== customerId));
     }
   };
-
   // HÀM XÁC NHẬN ĐĂNG XUẤT
   const confirmLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     window.location.href = '/';
   };
-
   return (
     <div className="employee-container">
       {/* Sidebar */}
       <aside className="employee-sidebar">
         <h2>NHÂN VIÊN</h2>
-
         <nav className="employee-nav">
           <button
             className={activeTab === 'orders' ? 'active' : ''}
@@ -198,14 +173,12 @@ const EmployeePage = () => {
           >
             📋 Quản lý đơn hàng
           </button>
-
           <button
             className={activeTab === 'products' ? 'active' : ''}
             onClick={() => setActiveTab('products')}
           >
             📦 Quản lý sản phẩm
           </button>
-
           <button
             className={activeTab === 'customers' ? 'active' : ''}
             onClick={() => setActiveTab('customers')}
@@ -213,13 +186,11 @@ const EmployeePage = () => {
             👥 Quản lý khách hàng
           </button>
         </nav>
-
         {/* 🆕 Nút mở Modal đăng xuất */}
         <button className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
           Đăng xuất
         </button>
       </aside>
-
       {/* Content */}
       <main className="employee-content">
         <header className="employee-header">
@@ -229,7 +200,6 @@ const EmployeePage = () => {
             {activeTab === 'customers' && 'Danh Sách Khách Hàng'}
           </h1>
         </header>
-
         <div className="table-wrapper">
           {/* 1. QUẢN LÝ ĐƠN HÀNG */}
           {activeTab === 'orders' && (
@@ -238,6 +208,7 @@ const EmployeePage = () => {
                 <tr>
                   <th>Mã Đơn</th>
                   <th>Khách Hàng</th>
+                  <th>Sản phẩm</th>
                   <th>SĐT</th>
                   <th>Tổng Tiền</th>
                   <th>Trạng Thái</th>
@@ -257,6 +228,9 @@ const EmployeePage = () => {
                         </strong>
                       </td>
                       <td>{order.customer}</td>
+                      <td style={{ fontWeight: '500', color: '#1e293b' }}>
+                        {order.product_names || 'Sản phẩm điện thoại'}
+                      </td>
                       <td>{order.phone || 'N/A'}</td>
                       <td>
                         {Number(order.totalAmount || order.totalPrice || order.total || 0).toLocaleString('vi-VN')}đ
@@ -313,7 +287,6 @@ const EmployeePage = () => {
                   }}
                 />
               </div>
-
               <table className="employee-table">
                 <thead>
                   <tr>
@@ -355,7 +328,6 @@ const EmployeePage = () => {
               </table>
             </div>
           )}
-
           {/* 3. QUẢN LÝ KHÁCH HÀNG */}
           {activeTab === 'customers' && (
             <div>
@@ -374,7 +346,6 @@ const EmployeePage = () => {
                   }}
                 />
               </div>
-
               <table className="employee-table">
                 <thead>
                   <tr>
@@ -418,7 +389,6 @@ const EmployeePage = () => {
           )}
         </div>
       </main>
-
       {/*   MODAL XÁC NHẬN ĐĂNG XUẤT */}
       {showLogoutConfirm && (
         <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
@@ -440,5 +410,4 @@ const EmployeePage = () => {
     </div>
   );
 };
-
 export default EmployeePage;

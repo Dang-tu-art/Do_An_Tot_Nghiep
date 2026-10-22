@@ -16,34 +16,34 @@ const PRODUCTS = [
       { color: 'Xanh', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNbZ1PE-fnIZQwEgzqB6ka2L50l9BWNmFl0GE2aYGj_w&s=10' },
       { color: 'Vàng', image: 'https://bizweb.dktcdn.net/100/655/213/products/3310-vang.png?v=1773313856163' }
     ]
-   },
+  },
   { id: 3, name: 'Nokia 8210 4G', rawPrice: 1290000, price: '1.290.000đ', image: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcReEOTYBlyijtWAui8OOxy_w7xS0MdMX1g1fv3ZUeyM1QLzOvtqI2S3Fyj4BdxQ8_x8ydeeFEHcESyDARzOgnHTCVM6bNtfjBUZAE-nvjp-ofsnxbpYEpX6zGAi3Lw2rorV0TYFQEg&usqp=CAc', category: 'Phím bấm', specs: 'Thiết kế cổ điển tái sinh, Màn hình 2.8 inch, Trình phát nhạc MP3, Kết nối 4G siêu nhanh.',
-     variants: [
+    variants: [
       { color: 'Trắng đen', image: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcReEOTYBlyijtWAui8OOxy_w7xS0MdMX1g1fv3ZUeyM1QLzOvtqI2S3Fyj4BdxQ8_x8ydeeFEHcESyDARzOgnHTCVM6bNtfjBUZAE-nvjp-ofsnxbpYEpX6zGAi3Lw2rorV0TYFQEg&usqp=CAc' },
       { color: 'Nâu đỏ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRYXmSOt6ffFNQDgkLDLn1wavEacI_WtwS88CD8YZ4lw&s=10' },
       { color: 'Xanh', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1opzdyZc8zrTu5rMHwRdAzLb94H992LYnI_H3950JcQ&s=10' }
     ]
-   },
+  },
   { id: 4, name: 'Nokia 220', rawPrice: 890000, price: '890.000đ', image: 'https://cdn2.cellphones.com.vn/x/media/catalog/product/n/o/nokia-220-4g_9_.png', category: 'Phím bấm', specs: 'Loa ngoài cực to, Phím bấm số lớn, Đèn pin siêu sáng, Thích hợp cho người lớn tuổi.',
-     variants: [
+    variants: [
       { color: 'Cam', image: 'https://cdn2.cellphones.com.vn/x/media/catalog/product/n/o/nokia-220-4g_9_.png' },
       { color: 'Đen', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRh-AK_gMZkq2pUPTh67jIuq8_hnDQJiHPfBw3Tj9gsNQ&s' },
     ]
-   },
+  },
   
   { id: 5, name: 'Iphone XS', rawPrice: 4500000, price: '4.500.000đ', image: 'https://apple.ngocnguyen.vn/cdn/images/202304/goods_img/iphone-xs-max-quoc-te-99-P3660-1680950352358.jpg', category: 'Apple', specs: 'Màn hình OLED 5.8 inch, Chip Apple A12 Bionic, Camera kép 12MP, Face ID, Chống nước IP68',
-     variants: [
+    variants: [
       { color: 'Trắng', image: 'https://apple.ngocnguyen.vn/cdn/images/202304/goods_img/iphone-xs-max-quoc-te-99-P3660-1680950352358.jpg' },
       { color: 'Vàng gold', image: 'https://techland.com.vn/public_folder/folder_image/uploads/upload/san_pham/iphone/iphone-xs-xsmax-xr/xs/iphone-xs-gold.jpg' },
     ]
-   },
+  },
   { id: 6, name: 'Iphone 12 Pro max', rawPrice: 7800000, price: '7.800.000đ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpjvZnKMRpfdXhYpivnOKlVEzesX_HrvLRBzGIcJc3TA&s=10', category: 'Apple', specs: 'Màn hình OLED Super Retina XDR 6.7 inch, Chip Apple A14 Bionic, Camera ba 12MP, Face ID, Chống nước IP68.',
     variants: [
       { color: 'Xám', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpjvZnKMRpfdXhYpivnOKlVEzesX_HrvLRBzGIcJc3TA&s=10' },
       { color: 'Xanh', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR96VxTXNIEwKTauigrt1kNVozka7H1YM_s-cL0M-FUxg&s=10' },
       { color: 'Vàng Gold', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/517/334/products/iphone-12-promaxvang.jpg?v=1716524802260'},
     ]
-   },
+  },
 
   { id: 7, name: 'Xiaomi Redmi 13C', rawPrice: 3090000, price: '3.090.000đ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS85bvWkuZIL5Y_zg3fdh9WOpaafj5RcX1ooNYHDrii1w&s', category: 'Xiaomi', specs: 'Màn hình 6.74 inch 90Hz, Camera AI 50MP, Chip MediaTek Helio G85, Pin 5000 mAh sạc 18W.',
     variants: [
@@ -51,127 +51,120 @@ const PRODUCTS = [
       { color: 'Trắng', image: 'https://clickbuy.com.vn/uploads/pro/xiaomi-redmi-13chtml-8352-mlvg-1024x1024-197464.jpg' },
       { color: 'Xanh lá', image: 'https://dungmobi.com/wp-content/uploads/2024/07/15200556/dien-thoai-xiaomi-redmi-13c-6gb-128gb-xanh-la-300x300.png'},
     ]
-   },
+  },
   { id: 8, name: 'Realme Note 50', rawPrice: 2490000, price: '2.490.000đ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdo62YRaXLfzbEowNJYAZR-ReKZMCpZA7KZ-ckvj-mwA&s=10', category: 'Realme', specs: 'Kháng nước bụi IP54, Màn hình 90Hz mượt mà, Thân máy siêu mỏng 7.99mm, Pin 5000 mAh.',
     variants: [
       { color: 'Đen', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdo62YRaXLfzbEowNJYAZR-ReKZMCpZA7KZ-ckvj-mwA&s=10' },
       { color: 'Xanh', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ87lTTEpTmcJYXgT1jx-7E0a9P2Ernrmpjo6XTET05wA&s=10'},
     ]
-   },
+  },
   { id: 9, name: 'OPPO Reno 16', rawPrice: 3190000, price: '3.190.000đ', image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/o/p/oppo-reno16f-pop-white-9.jpg', category: 'OPPO', specs: 'Màn hình AMOLED 6.32 inch 120Hz, Chip Snapdragon 7 Gen 4, RAM 8GB, Camera ba 50MP, Pin 6700mAh, Sạc nhanh 80W.',
     variants: [
       { color: 'Trắng', image: 'https://cdn.viettablet.com/images/news/78/oppo-reno16-gia-bao-nhieu-1.jpg' },
       { color: 'Tím', image: 'https://cdn.hstatic.net/products/1000063620/163_4a99b97886614ef7834f12923d8ddc88_1024x1024.png'},
       { color: 'Xanh', image: 'https://www.duchuymobile.com/images/detailed/93/oppo-reno16-pro_nwld-ua.jpg'},
     ]
-   },
+  },
   { id: 10, name: 'Samsung Galaxy A05', rawPrice: 2890000, price: '2.890.000đ', image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/a/0/a05trang.jpg', category: 'Samsung', specs: 'Màn hình 6.7 inch HD+, Camera 50MP sắc nét, Chip MediaTek Helio G85, Hỗ trợ sạc nhanh 25W.',
     variants: [
       { color: 'Trắng', image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/a/0/a05trang.jpg' },
       { color: 'Đen', image: 'https://minhtuanmobile.com/uploads/products/240518031322-samsung-galaxy-a05-4gb-128gb-black.png'},
     ]
-   },
+  },
 
   { id: 11, name: 'Samsung Galaxy A55 5G', rawPrice: 9990000, price: '9.990.000đ', image: 'https://image.anhducdigital.vn/di-dong/dien-thoai/samsung/galaxy-a55/samsung-galaxy-a55-11.jpg', category: 'Samsung', specs: 'Khung kim loại sang trọng, Màn hình Super AMOLED 120Hz, Chip Exynos 1480, Kháng nước IP67.',
-     variants: [
+    variants: [
       { color: 'Hồng nhạt', image: 'https://image.anhducdigital.vn/di-dong/dien-thoai/samsung/galaxy-a55/samsung-galaxy-a55-11.jpg' },
       { color: 'Trắng', image: 'https://minhtuanmobile.com/uploads/products/240325043628-samsung-galaxy-a55-5g-8gb-128gb-1.png'},
     ]
-   },
+  },
   { id: 12, name: 'iPhone 13 128GB', rawPrice: 13990000, price: '13.990.000đ', image: 'https://cdn2.fptshop.com.vn/unsafe/828x0/filters:format(webp):quality(75)/2022_3_30_637842470242656074_iphone-13-white.jpg', category: 'Apple', specs: 'Màn hình Super Retina XDR OLED 6.1 inch, Chip Apple A15 Bionic, Chế độ quay phim Điện ảnh Cinematic.',
-     variants: [
+    variants: [
       { color: 'Trắng', image: 'https://cdn2.fptshop.com.vn/unsafe/828x0/filters:format(webp):quality(75)/2022_3_30_637842470242656074_iphone-13-white.jpg' },
       { color: 'Vàng gold', image: 'https://cdn2.fptshop.com.vn/unsafe/828x0/filters:format(webp):quality(75)/2022_4_19_637859769705793853_iPhone%2013%20Promax%20(2).jpg'},
       { color: 'Hồng', image: 'https://cdn2.fptshop.com.vn/unsafe/828x0/filters:format(webp):quality(75)/2022_3_30_637842470238437307_iphone-13-pink.jpg'},
     ]
-   },
+  },
   { id: 13, name: 'Xiaomi Redmi Note 13', rawPrice: 9400000, price: '9.490.000đ', image: 'https://clickbuy.com.vn/uploads/product-variant/2_55209.jpg', category: 'Xiaomi', specs: 'Màn hình cong AMOLED 120Hz 1.5K, Camera 200MP OIS, Sạc siêu tốc HyperCharge 120W.',
-     variants: [
+    variants: [
       { color: 'Xanh', image: 'https://clickbuy.com.vn/uploads/product-variant/2_55209.jpg' },
       { color: 'Vàng nhạt', image: 'https://cdn.clickbuy.com.vn/uploads/pro/2_52992.jpg'},
-     ]
-   },
+    ]
+  },
   { id: 14, name: 'Realme GT8 Pro', rawPrice: 8490000, price: '8.490.000đ', image: 'https://sonpixel.vn/wp-content/uploads/2025/10/realme-gt8-pro.webp', category: 'Realme', specs: 'Màn hình AMOLED 6.79 inch 144Hz, Chip Snapdragon 8 Elite Gen 5, RAM 16GB, Camera ba 50MP/50MP/200MP, Pin 7000mAh, Sạc nhanh 120W.',
     variants: [
       { color: 'Trắng', image: 'https://sonpixel.vn/wp-content/uploads/2025/10/realme-gt8-pro.webp' },
       { color: 'Xanh than', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiH2m-xNaws5tH1edsIRtGujESjKIfMsvCz6U30izCAYsIzUHzgcEdbS4i&s=10'},
-     ]
-   },
+    ]
+  },
 
   { id: 15, name: 'Iphone 14 Pro Max', rawPrice: 24990000, price: '24.990.000đ', image: 'https://product.hstatic.net/200000032816/product/14pm-purple_14a9f4c868fa4f14890c648ef044be3d_master.png', category: 'Apple', specs: 'Màn hình OLED Super Retina XDR 6.1 inch 120Hz, Chip Apple A16 Bionic, Camera ba 48MP, Dynamic Island, Face ID, Chống nước IP68.',
     variants: [
       { color: 'Đen', image: 'https://product.hstatic.net/200000032816/product/14pm-purple_14a9f4c868fa4f14890c648ef044be3d_master.png' },
       { color: 'Trắng', image: 'https://irepair-mobiles.co.uk/wp-content/uploads/2023/08/iPhone-14-Pro-Max-New-A-Grade-Unlocked-128GB-Silver.jpg'},
-     ]
-   },
+    ]
+  },
   { id: 16, name: 'iPhone 15 Pro Max', rawPrice: 29990000, price: '29.990.000đ', image: 'https://www.itoo.it/cdn/shop/files/iPhone15ProTitanioBianco.jpg?v=1747561089&width=1920', category: 'Apple', specs: 'Màn hình 6.7 inch Super Retina XDR, Chip A17 Pro, Khung Titanium, Camera Zoom 5x, Pin 4422 mAh.',
     variants: [
       { color: 'Trắng', image: 'https://www.itoo.it/cdn/shop/files/iPhone15ProTitanioBianco.jpg?v=1747561089&width=1920' },
       { color: 'Đen', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/517/334/products/ip-15-pro-max-mhm-xanh-9a4ac8db5bb34883956fc0704320830f-grande-f3c2eec1-29c9-4d80-804d-95b2dd812f46.jpg?v=1716308540803' },
       { color: 'Titanium', image: 'https://www.phonemart.ng/wp-content/uploads/2024/06/15-promax2.jpeg' },
       ]
-   },
+  },
   { id: 17, name: 'Samsung Galaxy S24 Ultra', rawPrice: 26990000, price: '26.990.000đ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcgQwKfwzGqSYMM_gR9wOwCNNg2cI0HxelwuMWdu573g&s=10', category: 'Samsung', specs: 'Dynamic AMOLED 2X 6.8 inch 120Hz, Snapdragon 8 Gen 3, Bút S-Pen tích hợp, Camera 200MP AI.',
-     variants: [
+    variants: [
       { color: 'Xám', image: 'https://images.samsung.com/is/image/samsung/p6pim/vn/2401/gallery/vn-galaxy-s24-s928-sm-s928bztqxxv-539307591?$624_624_PNG$' },
       { color: 'Đen', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcgQwKfwzGqSYMM_gR9wOwCNNg2cI0HxelwuMWdu573g&s=10' },
       { color: 'Vàng',image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGIIrjkdTBGoY-YRUsWH1ZJzpattNdNbatCTPlUbtiC5TK7c60UtSkzAk&s=10' },
       ]
-   },
+  },
   { id: 18, name: 'Vivo V50 Lite 5G', rawPrice: 22490000, price: '22.490.000đ', image: 'https://cdn1.viettelstore.vn/Images/Product/ProductImage/543593845.jpeg', category: 'Vivo', specs: 'Màn hình AMOLED 6.77 inch 120Hz, Chip MediaTek Dimensity 6300, RAM 8GB, Camera sau 50MP + 8MP, Pin 6500mAh, Sạc nhanh 90W.',
-     variants: [
+    variants: [
       { color: 'Đen', image: 'https://bizweb.dktcdn.net/100/312/636/products/2-55248.jpg?v=1760705946910' },
       { color: 'Tím', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYKsLgNws9fyVQGPsHcn2aGuZIByIdM_ocNoX3l_g5yA&s=10' },
       { color: 'Vàng',image: 'https://asia-exstatic-vivofs.vivo.com/PSee2l50xoirPK7y/1744103027626/e506c9820501690dd40ff9088c16f833.png' },
       ]
-   },
+  },
   { id: 19, name: 'Xiaomi 14 Ultra', rawPrice: 24990000, price: '24.990.000đ', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQh9qKdQwH_zhfq0vxF1QZ_r8kpZ59zlxL8hoWexKUB4A&s=10', category: 'Xiaomi', specs: 'Ống kính quang học Leica 4 camera, Cảm biến 1-inch Sony LYT-900, Sạc siêu nhanh 90W.',
     variants: [
       { color: 'Xanh', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQh9qKdQwH_zhfq0vxF1QZ_r8kpZ59zlxL8hoWexKUB4A&s=10' },
       { color: 'Trắng', image: 'https://cdn2.cellphones.com.vn/x/media/catalog/product/x/i/xiaomi-14-ultra.png' },
       { color: 'Đen',image: 'https://wmw-eshop-prod.s3.amazonaws.com/images/products/5239/larges/Xiaomi_14_Ultra_Black.jpg?1718006088' },
       ]
-   },
- 
+  },
   { id: 20, name: 'Iphone 17 Pro Max', rawPrice: 39990000, price: '39.990.000đ', image: 'https://halomobile.vn/wp-content/uploads/2025/09/iPhone-17-Pro-Max-mau-cam-min.png', category: 'Apple', specs: 'Màn hình OLED Super Retina XDR 6.9 inch 120Hz, Chip Apple A19 Pro, Camera ba 48MP, Dynamic Island, Face ID, Chống nước IP68.',
-     variants: [
+    variants: [
       { color: 'Cam', image: 'https://halomobile.vn/wp-content/uploads/2025/09/iPhone-17-Pro-Max-mau-cam-min.png' },
       { color: 'Bạc Titanium', image: 'https://cdn2.fptshop.com.vn/unsafe/iphone_17_pro_max_silver_1_7b25d56e26.png' },
       { color: 'Xanh than',image: 'https://minhtuanmobile.com/uploads/products/251227020957-iphone-17-pro-max-1tb.jpg' },
       ]
-   }
+  }
 ];
-
 export default function ShopPage() {
   const [userOrders, setUserOrders] = useState([]);
   const [notification, setNotification] = useState(null);
-  
   // State Lịch sử mua hàng
   const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [customerOrders, setCustomerOrders] = useState([]);
-
   // State quản lý Modal Đánh giá sản phẩm (1-5 sao)
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewProductId, setReviewProductId] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-
   // Hàm tải danh sách đơn hàng thực tế từ Backend MySQL
   const fetchUserOrders = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/orders');
       const data = await res.json();
-      
       if (Array.isArray(data)) {
         const savedUser = localStorage.getItem('user');
         const currentUser = savedUser ? JSON.parse(savedUser) : null;
         const userEmail = currentUser?.email || currentUser?.username || '';
-        
         // Lọc các đơn hàng thuộc về người dùng VÀ LOẠI BỎ ĐƠN ĐÃ HỦY
         const myOrders = data.filter(order => {
           const orderCustomer = order.customer || order.email || order.customerName;
-          const isMyOrder = 
+          const isMyOrder =
             (order.email && order.email === userEmail) ||
             (orderCustomer && userEmail && orderCustomer.toLowerCase().includes(userEmail.split('@')[0].toLowerCase()));
           return isMyOrder && order.status !== 'Đã hủy';
@@ -189,7 +182,6 @@ export default function ShopPage() {
       setCustomerOrders([]);
     }
   };
-
   // Hàm xử lý khi bấm nút Lịch Sử Đơn Hàng trên Header
   const handleOpenOrderHistory = async () => {
     const dbOrders = await fetchUserOrders();
@@ -199,7 +191,6 @@ export default function ShopPage() {
         const allOrders = savedOrders ? JSON.parse(savedOrders) : [];
         const savedUser = localStorage.getItem('user');
         const currentUser = savedUser ? JSON.parse(savedUser) : null;
-
         if (currentUser) {
           const userIdentifier = currentUser.email || currentUser.username || currentUser.name;
           const myLocalOrders = allOrders.filter((order) => {
@@ -215,7 +206,6 @@ export default function ShopPage() {
     }
     setShowOrderHistory(true);
   };
-
   // --- HÀM GỬI ĐÁNH GIÁ SẢN PHẨM ---
 const handleSendReview = async (e) => {
   e.preventDefault();
@@ -224,10 +214,8 @@ const handleSendReview = async (e) => {
   const savedUser = localStorage.getItem('user');
   const currentUser = savedUser ? JSON.parse(savedUser) : null;
   const currentUserId = currentUser?.id || currentUser?.user_id || 1; 
-
   // Lấy product_id hợp lệ (nếu chưa có thì lấy mặc định 1)
   const finalProductId = reviewProductId || 1;
-
   try {
     const res = await fetch('http://localhost:5000/api/reviews', {
       method: 'POST',
@@ -237,24 +225,19 @@ const handleSendReview = async (e) => {
         user_id: Number(currentUserId),
         rating: Number(reviewRating),
         comment: reviewComment,
-        order_id: selectedOrderId // 🟢 Bổ sung order_id vào đây để Backend biết đơn hàng nào cần cập nhật!
+        order_id: selectedOrderId
       })
     });
-
     const data = await res.json();
-
     if (res.ok) {
       alert('🌟 Cảm ơn bạn đã đánh giá sản phẩm!');
       setShowReviewModal(false);
       setReviewComment('');
       setReviewRating(5);
-      
-      // 🟢 Gọi lại hàm lấy danh sách đơn hàng để cập nhật ngay giao diện (biến thành "Đã đánh giá")
       if (typeof fetchCustomerOrders === 'function') {
         fetchCustomerOrders();
       }
     } else {
-      // Hiển thị chính xác thông báo lỗi từ Backend trả về
       alert(`Gửi thất bại: ${data.message || 'Lỗi dữ liệu'}`);
     }
   } catch (err) {
@@ -289,7 +272,6 @@ const handleSendReview = async (e) => {
       }
     }
   };
-
  // 3. Effect quản lý Thông báo
 useEffect(() => {
   const checkAndShowNotification = () => {
@@ -299,7 +281,6 @@ useEffect(() => {
         const parsedNotice = JSON.parse(savedNotice);
         setNotification(parsedNotice.message);
         localStorage.removeItem('latest_notification');
-
         setTimeout(() => {
           setNotification(null);
         }, 4000);
@@ -308,9 +289,7 @@ useEffect(() => {
       }
     }
   };
-
   checkAndShowNotification();
-
   const handleCustomEvent = (e) => {
     if (e.detail?.message) {
       setNotification(e.detail.message);
@@ -319,22 +298,18 @@ useEffect(() => {
       checkAndShowNotification();
     }
   };
-
   const handleStorageEvent = (e) => {
     if (e.key === 'latest_notification') {
       checkAndShowNotification();
     }
   };
-
   window.addEventListener('order_status_updated', handleCustomEvent);
   window.addEventListener('storage', handleStorageEvent);
-
   return () => {
     window.removeEventListener('order_status_updated', handleCustomEvent);
     window.removeEventListener('storage', handleStorageEvent);
   };
 }, []);
-
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user')) || { email: 'Khách hàng' };
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -345,7 +320,6 @@ useEffect(() => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [products, setProducts] = useState([]);
-
   const fetchProducts = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/products');
@@ -355,11 +329,9 @@ useEffect(() => {
       console.error('Lỗi tải sản phẩm từ CSDL MySQL:', err);
     }
   };
-
   useEffect(() => {
     fetchProducts();
   }, []);
-
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState(null);
   const [shippingInfo, setShippingInfo] = useState({
@@ -369,13 +341,11 @@ useEffect(() => {
     paymentMethod: 'COD'
   });
   const categories = ['Tất cả', 'Phím bấm', 'Apple', 'Samsung', 'Xiaomi', 'Khác'];
-
   const confirmLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     navigate('/'); 
   };
-
   const handleOpenModal = (product) => {
     setSelectedProduct(product);
     if (product.variants && product.variants.length > 0) {
@@ -384,7 +354,6 @@ useEffect(() => {
       setSelectedVariant({ color: 'Tiêu chuẩn', image: product.image || '' });
     }
   };
-
   const handleAddToCart = (product, variantChosen) => {
     const variant = variantChosen || (
       product.variants && product.variants.length > 0 
@@ -395,7 +364,6 @@ useEffect(() => {
     const cleanPrice = typeof rawPrice === 'string'
       ? Number(rawPrice.replace(/[^0-9]/g, ''))
       : Number(rawPrice);
-    
     setCart((prevCart) => {
       const existingItem = prevCart.find(
         (item) => item.id === product.id && item.color === variant.color
@@ -420,7 +388,6 @@ useEffect(() => {
       }
     });
   };
-
   const updateQuantity = (id, color, delta) => {
     setCart((prevCart) =>
       prevCart
@@ -434,11 +401,9 @@ useEffect(() => {
         .filter(Boolean)
     );
   };
-
   const removeFromCart = (id, color) => {
     setCart((prevCart) => prevCart.filter((item) => !(item.id === id && item.color === color)));
   };
-
   const totalCartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const totalPrice = cart.reduce((sum, item) => {
     const priceNum = typeof item.price === 'string'
@@ -446,17 +411,14 @@ useEffect(() => {
       : Number(item.price || item.rawPrice || 0);
     return sum + priceNum * (item.quantity || 1);
   }, 0);
-
   const handleOpenCheckout = () => {
     if (cart.length === 0) return;
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
   };
-
   const handleFinalPayment = async (e) => {
     e.preventDefault();
     const cleanTotalPrice = typeof totalPrice === 'number' ? totalPrice : Number(totalPrice.toString().replace(/[^0-9]/g, ''));
-
     const formattedItems = cart.map(item => {
       const itemPrice = item.price || item.rawPrice || 0;
       const cleanPrice = typeof itemPrice === 'number' ? itemPrice : Number(itemPrice.toString().replace(/[^0-9]/g, ''));
@@ -467,7 +429,6 @@ useEffect(() => {
         color: item.color || 'Tiêu chuẩn'
       };
     });
-
     const newOrderData = {
       user_id: user?.id || 1,
       recipient_name: shippingInfo.fullName || user.email || 'Khách hàng',
@@ -479,7 +440,6 @@ useEffect(() => {
       totalAmount: cleanTotalPrice,
       items: formattedItems
     };
-
     try {
       const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
@@ -512,7 +472,6 @@ useEffect(() => {
       alert('Không thể kết nối đến máy chủ Backend!');
     }
   };
-
   const filteredProducts = products.filter((item) => {
     const keyword = searchTerm.toLowerCase();
     const matchesSearch = item.name.toLowerCase().includes(keyword) || (item.specs && item.specs.toLowerCase().includes(keyword)); 
@@ -520,7 +479,6 @@ useEffect(() => {
     if (selectedCategory === 'Khác') return matchesSearch && !['Phím bấm', 'Apple', 'Samsung', 'Xiaomi'].includes(item.category);
     return matchesSearch && item.category === selectedCategory;
   });
-
   return (
     <div className="shop-container">
       {/* Thông báo nổi */}
@@ -529,7 +487,6 @@ useEffect(() => {
           🔔 {notification}
         </div>
       )}
-
       {/* Header */}
       <header className="shop-header">
         <div className="logo-section">
@@ -559,7 +516,6 @@ useEffect(() => {
           </button>
         </div>
       </header>
-
       {/* Banner Chuyên Nghiệp */}
       <section className="shop-banner">
         <div className="banner-content">
@@ -568,29 +524,28 @@ useEffect(() => {
         </div>
         <div className="banner-images">
           {/* Dùng trực tiếp ảnh từ Unsplash/Pexels để hiển thị 3 chiếc điện thoại cực xịn */}
-          <img 
-            src="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400&q=80" 
-            alt="Nokia Vintage" 
-            className="img-vintage" 
+          <img
+            src="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400&q=80"
+            alt="Nokia Vintage"
+            className="img-vintage"
           />
-          <img 
-            src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80" 
-            alt="Feature Phone" 
-            className="img-feature" 
+          <img
+            src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80"
+            alt="Feature Phone"
+            className="img-feature"
           />
-          <img 
-            src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&q=80" 
-            alt="iPhone Modern" 
-            className="img-modern" 
+          <img
+            src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&q=80"
+            alt="iPhone Modern"
+            className="img-modern"
           />
         </div>
       </section>
-
       {/* Thanh lọc danh mục */}
       <div className="category-filter">
         {categories.map((cat) => (
-          <button 
-            key={cat} 
+          <button
+            key={cat}
             className={`filter-btn ${selectedCategory === cat ? 'active' : ''}`}
             onClick={() => setSelectedCategory(cat)}
           >
@@ -598,7 +553,6 @@ useEffect(() => {
           </button>
         ))}
       </div>
-
      {/* Grid sản phẩm */}
       <main className="shop-main">
         <h3>
@@ -607,21 +561,20 @@ useEffect(() => {
         {filteredProducts.length > 0 ? (
           <div className="product-grid">
             {filteredProducts.map((item) => {
-              const localProduct = PRODUCTS.find(p => 
+              const localProduct = PRODUCTS.find(p =>
                 p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
               );
-              const itemVariants = (item.variants && item.variants.length > 0) 
-                ? item.variants 
+              const itemVariants = (item.variants && item.variants.length > 0)
+                ? item.variants
                 : (localProduct?.variants || []);
-              const defaultImg = 
+              const defaultImg =
                 item.image ||
                 (item.variants && item.variants.length > 0 && item.variants[0].image) ||
                 localProduct?.image ||
                 'https://via.placeholder.com/200';
-              const formattedPrice = item.price 
-                ? Number(item.price).toLocaleString('vi-VN') + 'đ' 
+              const formattedPrice = item.price
+                ? Number(item.price).toLocaleString('vi-VN') + 'đ'
                 : (localProduct?.price || '0đ');
-
               return (
                 <div
                   key={item.id}
@@ -645,8 +598,8 @@ useEffect(() => {
                   {itemVariants.length > 0 && (
                     <span className="color-count-tag">{itemVariants.length} màu sắc</span>
                   )}
-                  <button 
-                    className="add-cart-btn" 
+                  <button
+                    className="add-cart-btn"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToCart({ ...item, price: formattedPrice });
@@ -664,7 +617,6 @@ useEffect(() => {
           </p>
         )}
       </main>
-
       {/* Modal Chi Tiết Sản Phẩm */}
       {selectedProduct && selectedVariant && (
         <div className="modal-overlay" onClick={() => setSelectedProduct(null)}>
@@ -699,8 +651,8 @@ useEffect(() => {
                   <p>{selectedProduct.specs}</p>
                 </div>
                 <div className="modal-actions">
-                  <button 
-                    className="buy-now-btn" 
+                  <button
+                    className="buy-now-btn"
                     onClick={() => {
                       handleAddToCart(selectedProduct, selectedVariant);
                       setSelectedProduct(null);
@@ -714,7 +666,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       {/* GIỎ HÀNG MINI */}
       {isCartOpen && (
         <div className="mini-cart-overlay" onClick={() => setIsCartOpen(false)}>
@@ -764,7 +715,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       {/* MODAL ĐẶT HÀNG */}
       {isCheckoutOpen && (
         <div className="modal-overlay" onClick={() => setIsCheckoutOpen(false)}>
@@ -815,7 +765,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       {/* MODAL HÓA ĐƠN */}
       {currentInvoice && (
         <div className="modal-overlay" onClick={() => setCurrentInvoice(null)}>
@@ -876,6 +825,7 @@ useEffect(() => {
                   <thead>
                     <tr>
                       <th>Mã Đơn</th>
+                        <th>Sản phẩm</th>
                       <th>Tổng Tiền</th>
                       <th>Trạng Thái</th>
                       <th style={{ textAlign: 'center' }}>Thao Tác</th>
@@ -892,6 +842,9 @@ useEffect(() => {
                             })()}
                           </strong>
                         </td>
+                        <td style={{ fontWeight: '500', color: '#1e293b', maxWidth: '200px' }}>
+                          {order.product_names || 'Sản phẩm điện thoại'}
+                        </td>
                         <td style={{ color: '#059669', fontWeight: '600' }}>
                           {(() => {
                             const amount = order.totalAmount || order.totalPrice || order.total || order.total_amount || 0;
@@ -906,38 +859,37 @@ useEffect(() => {
                             {order.status !== 'Đã giao' && order.status !== 'Đã hủy' && '⏳ Đang xử lý'}
                           </span>
                         </td>
-                       <td style={{ textAlign: 'center' }}>
-  {order.status === 'Đã giao' ? (
-    // 🟢 Kiểm tra nếu đã đánh giá thì hiện chữ mờ, chưa thì hiện nút đánh giá
-    order.is_reviewed === 1 || order.is_reviewed === true ? (
-      <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', padding: '6px 10px', borderRadius: '4px' }}>
-        ✓ Đã đánh giá
-      </span>
-    ) : (
-      <button 
-        className="btn-review-order"
-        style={{ padding: '6px 12px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
-        onClick={() => {
-          setSelectedOrderId(order.id);
-          const prodId = order.product_id || (order.items && order.items[0]?.product_id) || 1;
-          setReviewProductId(prodId);
-          setShowReviewModal(true);
-        }}
-      >
-        ⭐ Đánh giá
-      </button>
-    )
-  ) : order.status !== 'Đã hủy' ? (
-    <button 
-      className="btn-cancel-order" 
-      onClick={() => handleCancelOrder(order.id || order.order_code)}
-    >
-      Hủy đơn
-    </button>
-  ) : (
-    <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
-  )}
-</td>
+                      <td style={{ textAlign: 'center' }}>
+                      {order.status === 'Đã giao' ? (
+                        order.is_reviewed === 1 || order.is_reviewed === true ? (
+                          <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', padding: '6px 10px', borderRadius: '4px' }}>
+                            ✓ Đã đánh giá
+                          </span>
+                        ) : (
+                          <button 
+                            className="btn-review-order"
+                            style={{ padding: '6px 12px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+                            onClick={() => {
+                              setSelectedOrderId(order.id);
+                              const prodId = order.product_id || (order.items && order.items[0]?.product_id) || 1;
+                              setReviewProductId(prodId);
+                              setShowReviewModal(true);
+                            }}
+                          >
+                            ⭐ Đánh giá
+                          </button>
+                        )
+                      ) : order.status !== 'Đã hủy' ? (
+                        <button 
+                          className="btn-cancel-order" 
+                          onClick={() => handleCancelOrder(order.id || order.order_code)}
+                        >
+                          Hủy đơn
+                        </button>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>—</span>
+                      )}
+                    </td>
                       </tr>
                     ))}
                   </tbody>
@@ -949,7 +901,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       {/* ⭐ MODAL GỬI ĐÁNH GIÁ (1-5 SAO) */}
       {showReviewModal && (
         <div className="modal-overlay" onClick={() => setShowReviewModal(false)}>
@@ -988,7 +939,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       {/* MODAL XÁC NHẬN ĐĂNG XUẤT */}
       {showLogoutConfirm && (
         <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
@@ -1002,7 +952,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       <div className="shop-page">
         <Footer />
       </div>

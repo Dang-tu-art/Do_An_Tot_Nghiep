@@ -68,6 +68,8 @@
 .employee-content {
   flex: 1;
   padding: 32px;
+  width: calc(100% - 260px); 
+  box-sizing: border-box;
 }
 
 .employee-header {
@@ -166,6 +168,9 @@
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .employee-table {
@@ -179,6 +184,7 @@
   text-align: left;
   border-bottom: 1px solid #f1f5f9;
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .employee-table th {

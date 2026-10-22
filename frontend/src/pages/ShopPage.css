@@ -985,8 +985,8 @@
   background: #ffffff;
   padding: 24px;
   border-radius: 16px;
-  max-width: 600px;
-  width: 90%;
+  max-width: 800px; /* 🟢 Tăng chiều rộng modal lên 800px cho thoáng */
+  width: 95%;
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
@@ -1017,11 +1017,23 @@
   border-collapse: collapse;
 }
 .history-table th, .history-table td {
-  padding: 12px;
+  padding: 12px 14px;
   text-align: left;
   border-bottom: 1px solid #f1f5f9;
   font-size: 14px;
 }
+
+/* 🟢 Thêm đoạn này để cột Tên sản phẩm, Trạng thái và Thao tác hiển thị đẹp không bị bẻ dòng */
+.history-table td:nth-child(2) {
+  min-width: 170px; 
+  font-weight: 500;
+  color: #1e293b;
+}
+.history-table td:nth-child(4), 
+.history-table td:nth-child(5) {
+  white-space: nowrap; 
+}
+
 .status-badge {
   padding: 4px 10px;
   border-radius: 20px;
