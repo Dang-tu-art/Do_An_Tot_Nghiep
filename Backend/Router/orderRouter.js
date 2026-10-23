@@ -29,11 +29,11 @@ router.get('/products', async (req, res) => {
 
 // 1.2 Thêm sản phẩm mới (Dành cho Admin)
 router.post('/products', async (req, res) => {
-  const { name, brand, category, price, stock, image } = req.body;
+  const { name, brand, category, price, stock, specs, image } = req.body;
   try {
     const [result] = await db.query(
-      'INSERT INTO products (name, brand, category, price, stock, image) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, brand || 'Apple', category || 'Điện thoại', price, stock || 10, image]
+      'INSERT INTO products (name, brand, category, price, stock, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, brand || 'Apple', category || 'Điện thoại', price, stock || 10, specs || '', image]
     );
     res.status(201).json({ message: 'Thêm sản phẩm mới thành công!', id: result.insertId });
   } catch (error) {
@@ -45,11 +45,11 @@ router.post('/products', async (req, res) => {
 // 1.3 Cập nhật / Sửa thông tin & giá sản phẩm (Dành cho Admin)
 router.put('/products/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, brand, category, price, stock, image } = req.body;
+  const { name, brand, category, price, stock, specs, image } = req.body;
   try {
     const [result] = await db.query(
-      'UPDATE products SET name = ?, brand = ?, category = ?, price = ?, stock = ?, image = ? WHERE id = ?',
-      [name, brand, category, price, stock, image, id]
+      'UPDATE products SET name = ?, brand = ?, category = ?, price = ?, stock = ?, specs = ?, image = ? WHERE id = ?',
+      [name, brand, category, price, stock, specs || '', image, id]
     );
     if (result.affectedRows > 0) {
       res.json({ message: 'Cập nhật sản phẩm thành công!' });

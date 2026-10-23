@@ -33,6 +33,7 @@ const AdminPage = () => {
     brand: 'Apple',
     price: '',
     stock: 10,
+    specs: '',
     image: ''
   });
   const [customBrand, setCustomBrand] = useState('');
@@ -201,6 +202,7 @@ const totalEmployeesCount = Array.isArray(employees) ? employees.length : 0;
     brand: product.brand || 'Apple',
     price: product.price || '',
     stock: product.stock || 0,
+    specs: product.specs || '',
     image: product.image || '' 
   });
 
@@ -523,6 +525,17 @@ const handleImageChange = (e) => {
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                 />
               </div>
+
+              <div style={{ gridColumn: 'span 2' }}>
+                    <label>Thông số kỹ thuật:</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Ví dụ: Màn hình 6.1 inch, Pin 3349 mAh, Chip Apple A16 Bionic..."
+                      value={formData.specs}
+                      onChange={(e) => setFormData({ ...formData, specs: e.target.value })}
+                      style={{ width: '100%', padding: '8px', marginTop: '5px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', fontFamily: 'inherit' }}
+                    />
+              </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label>Hình Ảnh Sản Phẩm (Chọn từ máy):</label>
                 <input
@@ -728,13 +741,23 @@ const handleImageChange = (e) => {
                         <td>{prod.price}</td>
                         <td>{prod.stock} cái</td>
                         <td>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="action-btn"
+                            style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
+                            onClick={() => handleOpenEditForm(prod)}
+                          >
+                            Sửa
+                          </button>
+                        
                           <button
                             className="action-btn btn-danger"
                             onClick={() => handleDeleteProduct(prod.id, prod.name)}
                           >
                             Xóa
                           </button>
-                        </td>
+                        </div>
+                      </td>
                       </tr>
                     ))
                   ) : (
