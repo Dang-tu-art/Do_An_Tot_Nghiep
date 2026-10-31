@@ -312,5 +312,33 @@ router.delete('/employees/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// 3.4 Cập nhật thông tin nhân viên
+router.put('/employees/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phone, password, role } = req.body;
+  
+  try {
+    let query = "UPDATE users SET full_name = ?, email = ?, phone = ?, role = ? WHERE id = ?";
+    let params = [name, email, phone || null, role || 'EMPLOYEE', id];
 
+    // Nếu có nhập mật khẩu mới thì tiến hành mã hóa và cập nhật mật khẩu
+    if (password && password.trim() !== '') {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      query = "UPDATE users SET full_name = ?, email = ?, phone = ?, role = ?, password = ? WHERE id = ?";
+      params = [name, email, phone || null, role || 'EMPLOYEE', hashedPassword, id];
+    }
+
+    const [result] = await db.query(query, params);
+
+    if (result.affectedRows > 0) {
+      res.json({ message: 'Cập nhật thông tin nhân viên thành công!' });
+    } else {
+      res.status(404).json({ message: 'Không tìm thấy tài khoản nhân viên!' });
+    }
+  } catch (error) {
+    console.error('Lỗi Cập Nhật Nhân Viên:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 module.exports = router;

@@ -48,6 +48,45 @@ const AdminPage = () => {
     password: '',
     role: 'EMPLOYEE'
   });
+  // --- STATE QUẢN LÝ NHÂN VIÊN (SỬA THÔNG TIN) ---
+const [editingEmployee, setEditingEmployee] = useState(null);
+const [showEditEmployeeForm, setShowEditEmployeeForm] = useState(false);
+// Hàm mở form sửa nhân viên
+const handleOpenEditEmployee = (emp) => {
+  setEditingEmployee(emp);
+  setEmployeeFormData({
+    name: emp.name || '',
+    email: emp.email || '',
+    phone: emp.phone || '',
+    password: '', // Mật khẩu có thể để trống nếu không muốn đổi
+    role: emp.role || 'EMPLOYEE'
+  });
+  setShowEditEmployeeForm(true);
+};
+
+// Hàm xử lý lưu khi sửa nhân viên (Gửi request PUT lên Backend)
+const handleUpdateEmployee = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch(`http://localhost:5000/api/employees/${editingEmployee.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(employeeFormData),
+    });
+
+    if (response.ok) {
+      alert('Cập nhật nhân viên thành công!');
+      setShowEditEmployeeForm(false);
+      setEditingEmployee(null);
+      loadDashboardData(); // Tải lại danh sách
+    } else {
+      alert('Lỗi khi cập nhật nhân viên.');
+    }
+  } catch (error) {
+    console.error('Lỗi:', error);
+    alert('Không thể kết nối đến server.');
+  }
+};
 
   // Tải dữ liệu thực tế từ Backend
   const loadDashboardData = async () => {
@@ -487,7 +526,7 @@ const handleImageChange = (e) => {
               </div>
 
               <div>
-                <label>Hãng / Thương Hiệu:</label>
+                <label>Thương Hiệu:</label>
                 <select
                   value={formData.brand}
                   onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
@@ -643,6 +682,65 @@ const handleImageChange = (e) => {
             </form>
           </div>
         )}
+        {/* FORM SỬA THÔNG TIN NHÂN VIÊN */}
+        {showEditEmployeeForm && (
+          <div className="admin-form-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <h3>✏️ Cập Nhật Thông Tin Nhân Viên</h3>
+            <form onSubmit={handleUpdateEmployee} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+              <div>
+                <label>Họ và Tên Nhân Viên:</label>
+                <input
+                  type="text"
+                  required
+                  value={employeeFormData.name}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, name: e.target.value })}
+                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                />
+              </div>
+
+              <div>
+                <label>Email Đăng Nhập:</label>
+                <input
+                  type="email"
+                  required
+                  value={employeeFormData.email}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, email: e.target.value })}
+                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                />
+              </div>
+
+              <div>
+                <label>Số Điện Thoại:</label>
+                <input
+                  type="text"
+                  value={employeeFormData.phone}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, phone: e.target.value })}
+                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                />
+              </div>
+
+              <div>
+                <label>Mật Khẩu (Để trống nếu không đổi):</label>
+                <input
+                  type="password"
+                  placeholder="******"
+                  value={employeeFormData.password}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, password: e.target.value })}
+                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                />
+              </div>
+
+              <div style={{ gridColumn: 'span 2', display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                <button type="submit" className="action-btn" style={{ backgroundColor: '#2563eb', color: '#fff' }}>
+                  Lưu Thay Đổi
+                </button>
+                <button type="button" className="action-btn btn-danger" onClick={() => setShowEditEmployeeForm(false)}>
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
         {/* TABLES CONTAINER */}
         <div className="table-wrapper">
          {/* 1. QUẢN LÝ ĐƠN HÀNG */}
@@ -736,7 +834,7 @@ const handleImageChange = (e) => {
                   <tr>
                     <th>STT</th>
                     <th>Tên Sản Phẩm</th>
-                    <th>Danh Mục</th>
+                    <th>Thương Hiệu</th>
                     <th>Giá Bán</th>
                     <th>Tồn Kho</th>
                     <th>Thao Tác</th>
@@ -748,7 +846,7 @@ const handleImageChange = (e) => {
                       <tr key={prod.id}>
                         <td><strong>{index + 1}</strong></td>
                         <td><strong>{prod.name}</strong></td>
-                        <td>{prod.category}</td>
+                        <td>{prod.brand}</td>
                         <td>{prod.price}</td>
                         <td>{prod.stock} cái</td>
                         <td>
@@ -784,7 +882,7 @@ const handleImageChange = (e) => {
           )}
 
           {/* 4. QUẢN LÝ KHÁCH HÀNG */}
-         {activeTab === 'customers' && (
+        {activeTab === 'customers' && (
               <div>
                 <div style={{ marginBottom: '15px' }}>
                   <input
@@ -871,12 +969,23 @@ const handleImageChange = (e) => {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="action-btn btn-danger"
-                          onClick={() => handleDeleteEmployee(emp.id, emp.name)}
-                        >
-                          Xóa / Khóa
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="action-btn"
+                            style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
+                            onClick={() => handleOpenEditEmployee(emp)}
+                          >
+                            Sửa
+                          </button>
+
+                          {/* Nút Xóa / Khóa có sẵn */}
+                          <button
+                            className="action-btn btn-danger"
+                            onClick={() => handleDeleteEmployee(emp.id, emp.name)}
+                          >
+                            Xóa / Khóa
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -888,7 +997,7 @@ const handleImageChange = (e) => {
               </tbody>
             </table>
           )}
-          
+           {/* 6. LỊCH SỬ XUẤT - NHẬP KHO */}
           {activeTab === 'inventory-logs' && (
           <div className="table-container">
             <h3>Lịch sử Xuất - Nhập Kho</h3>
@@ -928,8 +1037,8 @@ const handleImageChange = (e) => {
     </table>
   </div>
 )}
-        </div>
-      </main>
+</div>
+</main>
 
       {/* MODAL XÁC NHẬN ĐĂNG XUẤT */}
       {showLogoutConfirm && (
