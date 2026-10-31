@@ -11,6 +11,7 @@ const AdminPage = () => {
   const [orders, setOrders] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [inventoryLogs, setInventoryLogs] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const filteredProducts = Array.isArray(products) ? products.filter((prod) =>
@@ -62,11 +63,15 @@ const AdminPage = () => {
       const resEmployees = await fetch('http://localhost:5000/api/employees');
       const dataEmployees = await resEmployees.json();
       setEmployees(Array.isArray(dataEmployees) ? dataEmployees : []);
+      const resLogs = await fetch('http://localhost:5000/api/inventory-logs');
+      const dataLogs = await resLogs.json();
+      setInventoryLogs(Array.isArray(dataLogs) ? dataLogs : []);
     } catch (err) {
       console.error('Lỗi tải dữ liệu từ CSDL MySQL:', err);
       setProducts([]);
       setOrders([]);
       setEmployees([]);
+      setInventoryLogs([]);
     }
   };
 
@@ -385,6 +390,12 @@ const handleImageChange = (e) => {
             onClick={() => setActiveTab('dashboard')}
           >
             📊 Báo cáo Thống kê
+          </button>
+          <button
+            className={activeTab === 'inventory-logs' ? 'active' : ''}
+            onClick={() => setActiveTab('inventory-logs')}
+          >
+            📜 Lịch sử xuất nhập kho
           </button>
         </nav>
 
@@ -877,6 +888,46 @@ const handleImageChange = (e) => {
               </tbody>
             </table>
           )}
+          
+          {activeTab === 'inventory-logs' && (
+          <div className="table-container">
+            <h3>Lịch sử Xuất - Nhập Kho</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tên sản phẩm</th>
+                  <th>Loại giao dịch</th>
+                  <th>Số lượng</th>
+                  <th>Ghi chú</th>
+                  <th>Thời gian</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inventoryLogs && inventoryLogs.length > 0 ? (
+                  inventoryLogs.map((log) => (
+                    <tr key={log.id}>
+                      <td>{log.id}</td>
+                      <td>{log.product_name}</td>
+                      <td>
+                        <span style={{ color: log.type === 'NHAP' ? 'green' : 'red', fontWeight: 'bold' }}>
+                          {log.type === 'NHAP' ? '📥 Nhập hàng' : '📤 Xuất bán'}
+                        </span>
+                      </td>
+                      <td>{log.quantity}</td>
+                      <td>{log.note}</td>
+                      <td>{new Date(log.created_at).toLocaleString()}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center' }}>Chưa có lịch sử xuất nhập kho nào.</td>
+                  </tr>
+                )}
+      </tbody>
+    </table>
+  </div>
+)}
         </div>
       </main>
 

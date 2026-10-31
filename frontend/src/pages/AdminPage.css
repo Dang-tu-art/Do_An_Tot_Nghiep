@@ -348,3 +348,72 @@
 .confirm-btn-no:hover {
   background-color: #e2e8f0;
 }
+/* --- LỊCH SỬ KHO --- */
+.table-container {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  margin: 20px;
+}
+
+.table-container h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table-container th, 
+.table-container td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table-container th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.table-container tr {
+  transition: background-color 0.2s ease;
+}
+
+.table-container tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Badge trạng thái giao dịch Nhập / Xuất */
+.table-container td span {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Nếu là Nhập hàng (Màu xanh lá nhẹ) */
+.table-container td span:has-text("Nhập hàng") {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+/* Nếu là Xuất bán (Màu đỏ/cam nhẹ) */
+.table-container td span:has-text("Xuất bán") {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
